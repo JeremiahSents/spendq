@@ -219,11 +219,11 @@ export function SettingsView() {
               variant={state.blankMode ? "default" : "outline"}
               size="sm"
               onClick={() => {
-                if (isEmpty) {
+                if (!state.blankMode || isEmpty) {
                   resetDemo()
                   setAuto(String(seedSettings.autoApproveBelow))
                   setCfo(String(seedSettings.requireCfoAbove))
-                  toast.success("NCBA demo data loaded")
+                  toast.success(state.blankMode ? "NCBA demo data loaded" : "Demo reset to starting data")
                   return
                 }
                 setDialogMode("demo")

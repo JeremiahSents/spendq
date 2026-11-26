@@ -19,8 +19,8 @@ type Fallback = "unconfigured" | "authentication" | "unavailable"
 
 const FALLBACK_LABEL: Record<Fallback, string> = {
   unconfigured: "Demo answer",
-  authentication: "Demo answer · AI Gateway authentication failed",
-  unavailable: "Demo answer · AI Gateway unavailable",
+  authentication: "Demo answer · Google AI authentication failed",
+  unavailable: "Demo answer · Google AI unavailable",
 }
 
 type Message =
@@ -74,7 +74,7 @@ export function CopilotDrawer() {
         if (typeof body?.text === "string" && body.text.trim()) generated = body.text.trim()
       }
     } catch {
-      // Keep the demo usable when the gateway is offline or unavailable.
+      // Keep the demo usable when Google AI is unavailable.
     }
     if (request.signal.aborted) return
 

@@ -5,9 +5,9 @@ This is a Next.js template with shadcn/ui.
 
 ## SpendIQ AI
 
-Set `AI_GATEWAY_API_KEY` in `.env.local` and restart the local server. For a Vercel deployment, set it in the project's environment variables. The key stays on the server.
+Set `GOOGLE_GENERATIVE_AI_API_KEY` in `.env.local` and restart the local server. For a Vercel deployment, set the same server-side variable in the project settings.
 
-`AI_GATEWAY_MODEL` optionally overrides the default `google/gemini-2.5-flash` model. The Copilot sends the question and a summary of the selected workspace to AI Gateway. When no key is configured or the gateway is unavailable, the drawer shows its built-in demo answers.
+`GEMINI_MODEL` optionally overrides the default `gemini-3.7-flash` model. Copilot uses the AI SDK Google provider to send the question and a summary of the selected workspace directly to Google. The drawer uses built-in demo answers when the key is missing or Google AI is unavailable.
 
 ## Adding components
 
