@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { Add01Icon, CheckmarkCircle02Icon, Clock01Icon, Invoice01Icon, PiggyBankIcon } from "@hugeicons/core-free-icons"
 
@@ -69,6 +70,25 @@ export function ProcurementView() {
       <RequestsTable onNewRequest={() => setDialogOpen(true)} />
 
       <NewRequestDialog open={dialogOpen} onOpenChange={setDialogOpen} />
+      <React.Suspense fallback={null}>
+        <OpenFromQuery onOpen={() => setDialogOpen(true)} />
+      </React.Suspense>
     </div>
   )
+}
+
+/** `/procurement?new=1` (from the "Add data" menu) opens the request dialog, then drops the param. */
+function OpenFromQuery({ onOpen }: { onOpen: () => void }) {
+  const params = useSearchParams()
+  const router = useRouter()
+  const pathname = usePathname()
+  const wantsNew = params.get("new") === "1"
+
+  React.useEffect(() => {
+    if (!wantsNew) return
+    onOpen()
+    router.replace(pathname, { scroll: false })
+  }, [wantsNew, onOpen, router, pathname])
+
+  return null
 }

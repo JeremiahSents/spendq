@@ -1,5 +1,6 @@
 "use client"
 
+import { AddDataMenu } from "@/components/forms/add-data-menu"
 import { DataLabel, PageHeader } from "@/components/shared/dashboard-ui"
 import { RANGE_LABEL } from "@/lib/store/selectors"
 import { useSpend } from "@/lib/store/spend-store"
@@ -26,6 +27,7 @@ export function OverviewPage() {
               {state.workspace} · {RANGE_LABEL[state.range]}
             </span>
             <DataLabel kind="simulated" />
+            <AddDataMenu />
           </>
         }
       />
