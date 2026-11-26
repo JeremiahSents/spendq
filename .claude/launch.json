@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "spendiq",
-      "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["dev", "--port", "3100"],
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["node_modules/next/dist/bin/next", "dev", "--port", "3100"],
       "port": 3100
     }
   ]

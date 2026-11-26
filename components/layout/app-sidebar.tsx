@@ -41,7 +41,7 @@ import { useSpend } from "@/lib/store/spend-store"
 import { NAV_GROUPS, isActive } from "./nav"
 
 const ITEM_CLASS =
-  "h-8 rounded-lg px-3 text-sm font-medium text-sidebar-foreground/75 transition-colors data-active:bg-sidebar-accent data-active:text-sidebar-accent-foreground data-active:[&_svg]:text-primary group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:my-0.5 group-data-[collapsible=icon]:size-9! group-data-[collapsible=icon]:w-9! group-data-[collapsible=icon]:min-w-9! group-data-[collapsible=icon]:max-w-9! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0! group-data-[collapsible=icon]:[&_span]:hidden [&_svg]:size-[15px]! [&_svg]:text-foreground"
+  "h-8 rounded-lg px-3 text-sm font-medium text-sidebar-foreground/75 transition-colors data-active:bg-sidebar-accent data-active:text-sidebar-accent-foreground data-active:[&_svg]:text-brand group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:my-0.5 group-data-[collapsible=icon]:size-9! group-data-[collapsible=icon]:w-9! group-data-[collapsible=icon]:min-w-9! group-data-[collapsible=icon]:max-w-9! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0! group-data-[collapsible=icon]:[&_span]:hidden [&_svg]:size-[15px]! [&_svg]:text-foreground"
 
 const badgeText = (count: number) => (count > 99 ? "99+" : String(count))
 
@@ -55,7 +55,7 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" variant="inset" className="border-0! bg-transparent">
       <SidebarHeader className="shrink-0 gap-2 p-2 pb-1 group-data-[collapsible=icon]:px-0">
-        <div className="flex h-10 items-center gap-1">
+        <div className="flex h-10 items-center gap-1 group-data-[collapsible=icon]:justify-center">
           <Link
             href="/"
             aria-label="SpendIQ home"
@@ -129,11 +129,11 @@ export function AppSidebar() {
               <button
                 type="button"
                 aria-label="Account menu"
-                className="flex h-11 w-full items-center gap-2.5 rounded-lg px-2 text-left transition-colors hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:outline-none data-popup-open:bg-sidebar-accent group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0"
+                className="flex h-11 w-full items-center gap-2.5 rounded-lg px-2 text-left transition-colors hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:outline-none data-popup-open:bg-sidebar-accent group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-9! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:p-0!"
               />
             }
           >
-            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-secondary font-mono text-[11px] font-semibold text-secondary-foreground">
+            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-secondary group-data-[collapsible=icon]:size-9 font-mono text-[11px] font-semibold text-secondary-foreground">
               JS
             </span>
             <span className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">

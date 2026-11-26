@@ -10,7 +10,7 @@ export const VENDOR_COLOR = { light: "#38302E", dark: "#B5ABA7" }
 export const SAVINGS_COLOR = { light: "#10b981", dark: "#10b981" }
 export const AMBER_COLOR = { light: "#f59e0b", dark: "#f59e0b" }
 
-export const CHART_CLASS = "aspect-auto h-[250px] w-full"
+export const CHART_CLASS = "aspect-auto h-[230px] w-full"
 
 /** Compact axis ticks: $12k, $1.2M. */
 export function axisMoney(n: number) {

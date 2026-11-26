@@ -2,12 +2,12 @@
 
 import * as React from "react"
 
+import { DataTable, type SpendColumn } from "@/components/shared/data-table"
 import { EmptyState, SectionCard } from "@/components/shared/dashboard-ui"
 import { BrandLogo } from "@/components/shared/brand-logo"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { ProcurementRequest } from "@/lib/data/types"
-import { money } from "@/lib/format"
+import { money, shortDate } from "@/lib/format"
 import { useSpend } from "@/lib/store/spend-store"
 import { cn } from "@/lib/utils"
 
@@ -23,6 +23,98 @@ const MATCH: Record<Filter, (r: ProcurementRequest) => boolean> = {
 }
 
 const LABEL: Record<Filter, string> = { all: "All", pending: "Pending", approved: "Approved", rejected: "Rejected" }
+
+const idNumber = (id: string) => Number(id.replace(/\D/g, "")) || 0
+
+const COLUMNS: Array<SpendColumn<ProcurementRequest>> = [
+  {
+    id: "id",
+    header: "ID",
+    accessorFn: (r) => idNumber(r.id),
+    cell: ({ row }) => <span className="font-mono text-xs text-muted-foreground tabular-nums">{row.original.id}</span>,
+    meta: { className: "w-20" },
+  },
+  {
+    id: "request",
+    header: "Request",
+    enableSorting: false,
+    cell: ({ row }) => (
+      <div className="min-w-0">
+        <div className="truncate font-medium">{row.original.title}</div>
+        <div className="truncate text-xs text-muted-foreground">{row.original.department}</div>
+      </div>
+    ),
+    meta: { cellClassName: "max-w-72" },
+  },
+  {
+    id: "category",
+    header: "Category",
+    enableSorting: false,
+    cell: ({ row }) => <span className="text-xs text-muted-foreground">{row.original.category}</span>,
+  },
+  {
+    id: "submitted",
+    header: "Submitted",
+    accessorFn: (r) => r.submittedAt,
+    cell: ({ row }) => (
+      <span className="font-mono text-xs whitespace-nowrap text-muted-foreground tabular-nums">
+        {shortDate(row.original.submittedAt)}
+      </span>
+    ),
+  },
+  {
+    id: "requested",
+    header: "Requested /mo",
+    accessorFn: (r) => r.requestedMonthly,
+    cell: ({ row }) => <span className="font-mono tabular-nums">{money(row.original.requestedMonthly)}</span>,
+    meta: { align: "right" },
+  },
+  {
+    id: "optimized",
+    header: "Optimized /mo",
+    accessorFn: (r) => recommendedOption(r).monthly,
+    cell: ({ row }) => <span className="font-mono tabular-nums">{money(recommendedOption(row.original).monthly)}</span>,
+    meta: { align: "right" },
+  },
+  {
+    id: "action",
+    header: "Recommended action",
+    enableSorting: false,
+    cell: ({ row }) => {
+      const r = row.original
+      const a = r.analysis
+      const brand = a.recommendedKey === "optimized" ? a.alternative?.brand : a.reuse?.brand
+      return (
+        <span className="inline-flex items-center gap-1.5 text-xs whitespace-nowrap">
+          {a.recommendedKey !== "as-requested" && brand ? <BrandLogo brand={brand} size="xs" /> : null}
+          <span className={cn(a.recommendedKey === "as-requested" && "text-muted-foreground")}>{recommendedAction(r)}</span>
+        </span>
+      )
+    },
+  },
+  {
+    id: "avoided",
+    header: "Avoided /mo",
+    accessorFn: (r) => r.analysis.avoided,
+    cell: ({ row }) => {
+      const avoided = row.original.analysis.avoided
+      return (
+        <span
+          className={cn("font-mono tabular-nums", avoided > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground")}
+        >
+          {avoided > 0 ? money(avoided) : "—"}
+        </span>
+      )
+    },
+    meta: { align: "right" },
+  },
+  {
+    id: "status",
+    header: "Status",
+    enableSorting: false,
+    cell: ({ row }) => <RequestStatusBadge status={row.original.status} />,
+  },
+]
 
 export function RequestsTable({ onNewRequest }: { onNewRequest: () => void }) {
   const { state, openDrawer } = useSpend()
@@ -51,85 +143,25 @@ export function RequestsTable({ onNewRequest }: { onNewRequest: () => void }) {
         </Tabs>
       }
     >
-      {rows.length === 0 ? (
-        <EmptyState
-          title={`No ${LABEL[filter].toLowerCase()} requests`}
-          description="Requests appear here as soon as they are filed and analyzed."
-          action={
-            <button type="button" onClick={onNewRequest} className="text-xs font-medium underline underline-offset-4">
-              File a purchase request
-            </button>
-          }
-        />
-      ) : (
-        <div className="-mx-4 border-t">
-          <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-transparent">
-                <TableHead className="pl-4 text-xs">ID</TableHead>
-                <TableHead className="text-xs">Request</TableHead>
-                <TableHead className="text-xs">Category</TableHead>
-                <TableHead className="text-right text-xs">Requested /mo</TableHead>
-                <TableHead className="text-right text-xs">Optimized /mo</TableHead>
-                <TableHead className="text-xs">Recommended action</TableHead>
-                <TableHead className="text-right text-xs">Avoided /mo</TableHead>
-                <TableHead className="pr-4 text-xs">Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rows.map((r) => {
-                const best = recommendedOption(r)
-                const a = r.analysis
-                const brand = a.recommendedKey === "optimized" ? a.alternative?.brand : a.reuse?.brand
-                return (
-                  <TableRow
-                    key={r.id}
-                    tabIndex={0}
-                    role="button"
-                    aria-label={`Open ${r.id} ${r.title}`}
-                    onClick={() => openDrawer({ kind: "request", id: r.id })}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault()
-                        openDrawer({ kind: "request", id: r.id })
-                      }
-                    }}
-                    className="cursor-pointer outline-none focus-visible:bg-muted/60"
-                  >
-                    <TableCell className="pl-4 font-mono text-xs text-muted-foreground tabular-nums">{r.id}</TableCell>
-                    <TableCell className="max-w-72">
-                      <div className="truncate font-medium">{r.title}</div>
-                      <div className="truncate text-xs text-muted-foreground">{r.department}</div>
-                    </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">{r.category}</TableCell>
-                    <TableCell className="text-right font-mono tabular-nums">{money(r.requestedMonthly)}</TableCell>
-                    <TableCell className="text-right font-mono tabular-nums">{money(best.monthly)}</TableCell>
-                    <TableCell>
-                      <span className="inline-flex items-center gap-1.5 text-xs">
-                        {a.recommendedKey !== "as-requested" && brand ? <BrandLogo brand={brand} size="xs" /> : null}
-                        <span className={cn(a.recommendedKey === "as-requested" && "text-muted-foreground")}>
-                          {recommendedAction(r)}
-                        </span>
-                      </span>
-                    </TableCell>
-                    <TableCell
-                      className={cn(
-                        "text-right font-mono tabular-nums",
-                        a.avoided > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground",
-                      )}
-                    >
-                      {a.avoided > 0 ? money(a.avoided) : "—"}
-                    </TableCell>
-                    <TableCell className="pr-4">
-                      <RequestStatusBadge status={r.status} />
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+      <DataTable
+        columns={COLUMNS}
+        rows={rows}
+        getRowId={(r) => r.id}
+        onRowClick={(r) => openDrawer({ kind: "request", id: r.id })}
+        initialSorting={[{ id: "id", desc: true }]}
+        caption="Purchase requests"
+        empty={
+          <EmptyState
+            title={`No ${LABEL[filter].toLowerCase()} requests`}
+            description="Requests appear here as soon as they are filed and analyzed."
+            action={
+              <button type="button" onClick={onNewRequest} className="text-xs font-medium underline underline-offset-4">
+                File a purchase request
+              </button>
+            }
+          />
+        }
+      />
     </SectionCard>
   )
 }

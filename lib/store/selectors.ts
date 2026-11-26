@@ -96,6 +96,21 @@ export function monthOverMonth(s: SpendState) {
   }
 }
 
+/**
+ * Last eight months of a figure for a MetricCard sparkline, ending on today's
+ * value. Spend series follow the simulated baseline trend; other figures reuse
+ * the closest spend shape, so they are labelled as simulated.
+ */
+export function sparkSeries(current: number, shape: "cloud" | "vendor" | "total" = "total", points = 8) {
+  const factors =
+    shape === "cloud"
+      ? CLOUD_TREND
+      : shape === "vendor"
+        ? VENDOR_TREND
+        : CLOUD_TREND.map((c, i) => (c + VENDOR_TREND[i]) / 2)
+  return factors.slice(-points).map((f) => Math.round(current * f * 100) / 100)
+}
+
 export function spendByProvider(s: SpendState) {
   const map = new Map<string, number>()
   for (const r of s.resources) map.set(r.provider, (map.get(r.provider) ?? 0) + r.monthlyCost)

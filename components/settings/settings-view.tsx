@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { toast } from "sonner"
 
+import { DataTable, type SpendColumn } from "@/components/shared/data-table"
 import { DataLabel, PageHeader, SectionCard } from "@/components/shared/dashboard-ui"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -51,6 +52,64 @@ function MoneyInput({
   )
 }
 
+type BudgetRow = {
+  department: string
+  budget: number
+  actual: number
+  over: boolean
+  variance: number
+  util: number
+}
+
+const BUDGET_COLUMNS: Array<SpendColumn<BudgetRow>> = [
+  {
+    id: "department",
+    header: "Department",
+    accessorFn: (r) => r.department,
+    cell: ({ row }) => <span className="font-medium">{row.original.department}</span>,
+  },
+  {
+    id: "budget",
+    header: "Monthly budget",
+    accessorFn: (r) => r.budget,
+    cell: ({ row }) => <span className="font-mono tabular-nums">{money(row.original.budget)}</span>,
+    meta: { align: "right" },
+  },
+  {
+    id: "actual",
+    header: "Actual",
+    accessorFn: (r) => r.actual,
+    cell: ({ row }) => <span className="font-mono tabular-nums">{money(row.original.actual)}</span>,
+    meta: { align: "right" },
+  },
+  {
+    id: "variance",
+    header: "Variance",
+    accessorFn: (r) => r.variance,
+    cell: ({ row }) => (
+      <span
+        className={cn(
+          "font-mono tabular-nums",
+          row.original.over ? "text-destructive" : "text-emerald-600 dark:text-emerald-400",
+        )}
+      >
+        {row.original.variance < 0 ? "-" : "+"}
+        {money(Math.abs(row.original.variance))}
+      </span>
+    ),
+    meta: { align: "right" },
+  },
+  {
+    id: "util",
+    header: "Utilization",
+    accessorFn: (r) => r.util,
+    cell: ({ row }) => (
+      <span className={cn("font-mono tabular-nums", row.original.over && "text-destructive")}>{row.original.util}%</span>
+    ),
+    meta: { align: "right" },
+  },
+]
+
 export function SettingsView() {
   const { state, updateSettings } = useSpend()
   const { settings } = state
@@ -81,7 +140,11 @@ export function SettingsView() {
     toast(`${label} ${value ? "enabled" : "disabled"}`)
   }
 
-  const budgets = budgetVsActual(state)
+  const budgets: BudgetRow[] = budgetVsActual(state).map((b) => ({
+    ...b,
+    variance: b.budget - b.actual,
+    util: b.budget > 0 ? Math.round((b.actual / b.budget) * 100) : 0,
+  }))
 
   return (
     <div className="space-y-4">
@@ -131,42 +194,7 @@ export function SettingsView() {
       </div>
 
       <SectionCard title="Department budgets" description="Monthly budget against current run-rate. Read-only.">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b text-left text-xs text-muted-foreground">
-                <th className="py-2 pr-4 font-medium">Department</th>
-                <th className="px-4 py-2 text-right font-medium">Monthly budget</th>
-                <th className="px-4 py-2 text-right font-medium">Actual</th>
-                <th className="px-4 py-2 text-right font-medium">Variance</th>
-                <th className="py-2 pl-4 text-right font-medium">Utilization</th>
-              </tr>
-            </thead>
-            <tbody>
-              {budgets.map((b) => {
-                const variance = b.budget - b.actual
-                const util = b.budget > 0 ? Math.round((b.actual / b.budget) * 100) : 0
-                return (
-                  <tr key={b.department} className="border-b last:border-0">
-                    <td className="py-2 pr-4 font-medium">{b.department}</td>
-                    <td className="px-4 py-2 text-right font-mono tabular-nums">{money(b.budget)}</td>
-                    <td className="px-4 py-2 text-right font-mono tabular-nums">{money(b.actual)}</td>
-                    <td
-                      className={cn(
-                        "px-4 py-2 text-right font-mono tabular-nums",
-                        b.over ? "text-destructive" : "text-emerald-600 dark:text-emerald-400",
-                      )}
-                    >
-                      {variance < 0 ? "-" : "+"}
-                      {money(Math.abs(variance))}
-                    </td>
-                    <td className={cn("py-2 pl-4 text-right font-mono tabular-nums", b.over && "text-destructive")}>{util}%</td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
+        <DataTable columns={BUDGET_COLUMNS} rows={budgets} getRowId={(r) => r.department} caption="Department budgets" />
       </SectionCard>
 
       <SectionCard title="Workspace">

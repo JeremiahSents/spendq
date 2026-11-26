@@ -2,21 +2,21 @@
 
 import * as React from "react"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { ArrowDown02Icon, ArrowUp02Icon, ArrowUpDownIcon, Search01Icon } from "@hugeicons/core-free-icons"
+import { Search01Icon } from "@hugeicons/core-free-icons"
 
 import { BrandLogo } from "@/components/shared/brand-logo"
+import { DataTable, type SpendColumn } from "@/components/shared/data-table"
 import { EmptyState, SectionCard, ToneBadge, UtilizationBar } from "@/components/shared/dashboard-ui"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import type { CloudProvider, Environment } from "@/lib/data/types"
+import type { CloudProvider, CloudResource, Environment } from "@/lib/data/types"
 import { money } from "@/lib/format"
 import { sum } from "@/lib/store/selectors"
 import { useSpend } from "@/lib/store/spend-store"
 import { cn } from "@/lib/utils"
-import { resourceStatus, type StatusFilter } from "./resource-status"
+import { resourceStatus, type ResourceStatus, type StatusFilter } from "./resource-status"
 
 const PROVIDERS: CloudProvider[] = ["AWS", "Azure", "DigitalOcean", "Vercel", "Neon"]
 const ENVIRONMENTS: Environment[] = ["Production", "Staging", "Development"]
@@ -51,7 +51,100 @@ const ENV_CLASS: Record<Environment, string> = {
   Development: "border-border bg-muted text-muted-foreground",
 }
 
-type SortKey = "cost" | "savings"
+interface InventoryRow {
+  resource: CloudResource
+  status: ResourceStatus
+}
+
+/** Null metrics (storage/platform services) sort below every measured value. */
+const metric = (v: number | null) => v ?? -1
+
+const COLUMNS: Array<SpendColumn<InventoryRow>> = [
+  {
+    id: "name",
+    header: "Resource",
+    accessorFn: (row) => row.resource.name,
+    cell: ({ row }) => (
+      <div>
+        <div className="font-mono text-[12.5px] font-medium">{row.original.resource.name}</div>
+        <div className="text-[11px] text-muted-foreground">{row.original.resource.department}</div>
+      </div>
+    ),
+  },
+  {
+    id: "provider",
+    header: "Provider",
+    enableSorting: false,
+    cell: ({ row }) => (
+      <span className="flex items-center gap-1.5">
+        <BrandLogo brand={row.original.resource.provider} size="xs" />
+        {row.original.resource.provider}
+      </span>
+    ),
+  },
+  {
+    id: "type",
+    header: "Type",
+    enableSorting: false,
+    meta: { cellClassName: "text-muted-foreground" },
+    cell: ({ row }) => row.original.resource.type,
+  },
+  {
+    id: "environment",
+    header: "Environment",
+    enableSorting: false,
+    cell: ({ row }) => (
+      <Badge variant="outline" className={ENV_CLASS[row.original.resource.environment]}>
+        {row.original.resource.environment}
+      </Badge>
+    ),
+  },
+  {
+    id: "cpu",
+    header: "CPU",
+    accessorFn: (row) => metric(row.resource.cpu),
+    meta: { className: "w-32" },
+    cell: ({ row }) => <UtilizationBar value={row.original.resource.cpu} />,
+  },
+  {
+    id: "memory",
+    header: "Memory",
+    accessorFn: (row) => metric(row.resource.memory),
+    meta: { className: "w-32" },
+    cell: ({ row }) => <UtilizationBar value={row.original.resource.memory} />,
+  },
+  {
+    id: "cost",
+    header: "Monthly cost",
+    accessorFn: (row) => row.resource.monthlyCost,
+    meta: { align: "right", cellClassName: "font-mono tabular-nums" },
+    cell: ({ row }) => money(row.original.resource.monthlyCost),
+  },
+  {
+    id: "status",
+    header: "Optimization status",
+    enableSorting: false,
+    cell: ({ row }) => <ToneBadge tone={row.original.status.tone}>{row.original.status.label}</ToneBadge>,
+  },
+  {
+    id: "savings",
+    header: "Potential savings",
+    accessorFn: (row) => row.status.savings,
+    meta: { align: "right", cellClassName: "font-mono tabular-nums" },
+    cell: ({ row }) => {
+      const s = row.original.status
+      if (s.savings <= 0) return <span className="text-muted-foreground">—</span>
+      return (
+        <span
+          className={cn("text-emerald-600 dark:text-emerald-400", s.filter === "approved" && "opacity-70")}
+          title={s.filter === "approved" ? "Approved, projected" : "Pending, projected"}
+        >
+          {money(s.savings)}/mo
+        </span>
+      )
+    },
+  },
+]
 
 export function ResourceInventory() {
   const { state, openDrawer } = useSpend()
@@ -59,21 +152,19 @@ export function ResourceInventory() {
   const [provider, setProvider] = React.useState<string>("all")
   const [env, setEnv] = React.useState<string>("all")
   const [status, setStatus] = React.useState<StatusFilter>("all")
-  const [sort, setSort] = React.useState<{ key: SortKey; dir: "asc" | "desc" }>({ key: "cost", dir: "desc" })
 
-  const rows = React.useMemo(() => {
+  const rows = React.useMemo<InventoryRow[]>(() => {
     const q = query.trim().toLowerCase()
-    const all = state.resources.map((resource) => ({ resource, status: resourceStatus(state, resource) }))
-    const filtered = all.filter(({ resource: r, status: s }) => {
-      if (q && ![r.name, r.type, r.region].some((f) => f.toLowerCase().includes(q))) return false
-      if (provider !== "all" && r.provider !== provider) return false
-      if (env !== "all" && r.environment !== env) return false
-      if (status !== "all" && s.filter !== status) return false
-      return true
-    })
-    const pick = (row: (typeof all)[number]) => (sort.key === "cost" ? row.resource.monthlyCost : row.status.savings)
-    return filtered.sort((a, b) => (sort.dir === "desc" ? pick(b) - pick(a) : pick(a) - pick(b)))
-  }, [state, query, provider, env, status, sort])
+    return state.resources
+      .map((resource) => ({ resource, status: resourceStatus(state, resource) }))
+      .filter(({ resource: r, status: s }) => {
+        if (q && ![r.name, r.type, r.region].some((f) => f.toLowerCase().includes(q))) return false
+        if (provider !== "all" && r.provider !== provider) return false
+        if (env !== "all" && r.environment !== env) return false
+        if (status !== "all" && s.filter !== status) return false
+        return true
+      })
+  }, [state, query, provider, env, status])
 
   const filtersActive = query !== "" || provider !== "all" || env !== "all" || status !== "all"
   const clearFilters = () => {
@@ -83,17 +174,33 @@ export function ResourceInventory() {
     setStatus("all")
   }
 
-  const toggleSort = (key: SortKey) =>
-    setSort((s) => (s.key === key ? { key, dir: s.dir === "desc" ? "asc" : "desc" } : { key, dir: "desc" }))
-
   const totalCost = sum(rows, (r) => r.resource.monthlyCost)
   const totalSavings = sum(rows, (r) => (r.status.filter === "flagged" ? r.status.savings : 0))
+
+  const footer: React.ReactNode[] = [
+    <span key="label" className="text-xs font-normal text-muted-foreground">
+      Total · {rows.length} resources
+    </span>,
+    null,
+    null,
+    null,
+    null,
+    null,
+    <span key="cost" className="font-mono tabular-nums">
+      {money(totalCost)}
+    </span>,
+    <span key="pending" className="text-xs font-normal text-muted-foreground">
+      Pending savings
+    </span>,
+    <span key="savings" className="font-mono text-emerald-600 tabular-nums dark:text-emerald-400">
+      {totalSavings > 0 ? `${money(totalSavings)}/mo` : "—"}
+    </span>,
+  ]
 
   return (
     <SectionCard
       title="Resource inventory"
       description={`${rows.length} of ${state.resources.length} resources · click a row to review utilization and the recommendation`}
-      className="gap-3"
     >
       <div className="flex flex-wrap items-center gap-2 pb-3">
         <div className="relative min-w-52 flex-1 sm:max-w-72">
@@ -139,7 +246,7 @@ export function ResourceInventory() {
         <Select
           items={STATUS_ITEMS}
           value={status}
-          onValueChange={(v) => setStatus(((v as StatusFilter | null) ?? "all") as StatusFilter)}
+          onValueChange={(v) => setStatus((v as StatusFilter | null) ?? "all")}
         >
           <SelectTrigger className="min-w-36" aria-label="Filter by optimization status">
             <SelectValue />
@@ -159,8 +266,16 @@ export function ResourceInventory() {
         ) : null}
       </div>
 
-      {rows.length === 0 ? (
-        <div className="pb-1">
+      <DataTable
+        className="text-[13px]"
+        caption="Cloud resource inventory"
+        columns={COLUMNS}
+        rows={rows}
+        getRowId={(row) => row.resource.id}
+        onRowClick={(row) => openDrawer({ kind: "resource", id: row.resource.id })}
+        initialSorting={[{ id: "cost", desc: true }]}
+        footer={footer}
+        empty={
           <EmptyState
             title="No resources match these filters"
             description="Try a different search term, provider, environment or status."
@@ -170,141 +285,8 @@ export function ResourceInventory() {
               </Button>
             }
           />
-        </div>
-      ) : (
-        <div className="-mx-4 border-t">
-          <Table className="text-[13px]">
-            <TableHeader>
-              <TableRow className="hover:bg-transparent">
-                <TableHead className="h-8 pl-4 text-xs text-muted-foreground">Resource</TableHead>
-                <TableHead className="h-8 text-xs text-muted-foreground">Provider</TableHead>
-                <TableHead className="h-8 text-xs text-muted-foreground">Type</TableHead>
-                <TableHead className="h-8 text-xs text-muted-foreground">Environment</TableHead>
-                <TableHead className="h-8 w-32 text-xs text-muted-foreground">CPU</TableHead>
-                <TableHead className="h-8 w-32 text-xs text-muted-foreground">Memory</TableHead>
-                <SortHead label="Monthly cost" active={sort.key === "cost"} dir={sort.dir} onClick={() => toggleSort("cost")} />
-                <TableHead className="h-8 text-xs text-muted-foreground">Optimization status</TableHead>
-                <SortHead
-                  label="Potential savings"
-                  active={sort.key === "savings"}
-                  dir={sort.dir}
-                  onClick={() => toggleSort("savings")}
-                  className="pr-4"
-                />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rows.map(({ resource: r, status: s }) => (
-                <TableRow
-                  key={r.id}
-                  tabIndex={0}
-                  role="button"
-                  aria-label={`Open ${r.name}`}
-                  onClick={() => openDrawer({ kind: "resource", id: r.id })}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault()
-                      openDrawer({ kind: "resource", id: r.id })
-                    }
-                  }}
-                  className="cursor-pointer outline-none focus-visible:bg-muted/60"
-                >
-                  <TableCell className="py-1.5 pl-4">
-                    <div className="font-mono text-[12.5px] font-medium">{r.name}</div>
-                    <div className="text-[11px] text-muted-foreground">{r.department}</div>
-                  </TableCell>
-                  <TableCell className="py-1.5">
-                    <span className="flex items-center gap-1.5">
-                      <BrandLogo brand={r.provider} size="xs" />
-                      {r.provider}
-                    </span>
-                  </TableCell>
-                  <TableCell className="py-1.5 text-muted-foreground">{r.type}</TableCell>
-                  <TableCell className="py-1.5">
-                    <Badge variant="outline" className={ENV_CLASS[r.environment]}>
-                      {r.environment}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="py-1.5">
-                    <UtilizationBar value={r.cpu} />
-                  </TableCell>
-                  <TableCell className="py-1.5">
-                    <UtilizationBar value={r.memory} />
-                  </TableCell>
-                  <TableCell className="py-1.5 text-right font-mono tabular-nums">{money(r.monthlyCost)}</TableCell>
-                  <TableCell className="py-1.5">
-                    <ToneBadge tone={s.tone}>{s.label}</ToneBadge>
-                  </TableCell>
-                  <TableCell className="py-1.5 pr-4 text-right font-mono tabular-nums">
-                    {s.savings > 0 ? (
-                      <span
-                        className={cn(
-                          "text-emerald-600 dark:text-emerald-400",
-                          s.filter === "approved" && "opacity-70",
-                        )}
-                        title={s.filter === "approved" ? "Approved, projected" : "Pending, projected"}
-                      >
-                        {money(s.savings)}/mo
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-            <TableFooter>
-              <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={6} className="py-2 pl-4 text-xs text-muted-foreground">
-                  Total · {rows.length} resources
-                </TableCell>
-                <TableCell className="py-2 text-right font-mono tabular-nums">{money(totalCost)}</TableCell>
-                <TableCell className="py-2 text-xs text-muted-foreground">Pending savings</TableCell>
-                <TableCell className="py-2 pr-4 text-right font-mono text-emerald-600 tabular-nums dark:text-emerald-400">
-                  {totalSavings > 0 ? `${money(totalSavings)}/mo` : "—"}
-                </TableCell>
-              </TableRow>
-            </TableFooter>
-          </Table>
-        </div>
-      )}
+        }
+      />
     </SectionCard>
-  )
-}
-
-function SortHead({
-  label,
-  active,
-  dir,
-  onClick,
-  className,
-}: {
-  label: string
-  active: boolean
-  dir: "asc" | "desc"
-  onClick: () => void
-  className?: string
-}) {
-  return (
-    <TableHead
-      className={cn("h-8 text-right text-xs", className)}
-      aria-sort={active ? (dir === "asc" ? "ascending" : "descending") : "none"}
-    >
-      <button
-        type="button"
-        onClick={onClick}
-        className={cn(
-          "inline-flex items-center gap-1 rounded-sm hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none",
-          active ? "text-foreground" : "text-muted-foreground",
-        )}
-      >
-        {label}
-        <HugeiconsIcon
-          icon={active ? (dir === "desc" ? ArrowDown02Icon : ArrowUp02Icon) : ArrowUpDownIcon}
-          size={12}
-          strokeWidth={2}
-        />
-      </button>
-    </TableHead>
   )
 }

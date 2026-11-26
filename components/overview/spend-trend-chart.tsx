@@ -28,12 +28,6 @@ export function SpendTrendChart() {
     >
       <ChartContainer config={config} className={CHART_CLASS}>
         <AreaChart data={data} margin={{ left: 0, right: 8, top: 8 }}>
-          <defs>
-            <linearGradient id="fill-cloud" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="var(--color-cloud)" stopOpacity={0.35} />
-              <stop offset="100%" stopColor="var(--color-cloud)" stopOpacity={0.35} />
-            </linearGradient>
-          </defs>
           <CartesianGrid vertical={false} />
           <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} />
           <YAxis tickLine={false} axisLine={false} width={48} tickFormatter={axisMoney} />

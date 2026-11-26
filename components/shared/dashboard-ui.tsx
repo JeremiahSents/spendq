@@ -2,7 +2,7 @@
  * Shared dashboard building blocks, adapted from the Coinz admin patterns
  * (PageHeader, MetricCard, ChangePill, StatusBadge) and restyled for SpendIQ.
  */
-import type { ReactNode } from "react"
+import { useId, type ReactNode } from "react"
 import { HugeiconsIcon } from "@hugeicons/react"
 
 import { Badge } from "@/components/ui/badge"
@@ -24,7 +24,21 @@ export function PageHeader({ title, description, actions }: { title: string; des
   )
 }
 
-/** Summary tile: label, tabular figure, delta pill and a comparison line. */
+/** Grid for a row of MetricCards: four across from small screens up. */
+export const METRIC_GRID = "grid grid-cols-2 gap-3 sm:grid-cols-4"
+
+const TONE_STROKE: Record<"default" | "positive" | "warning" | "negative", string> = {
+  default: "var(--brand)",
+  positive: "#10b981",
+  warning: "#f59e0b",
+  negative: "var(--destructive)",
+}
+
+/**
+ * Summary tile, mirrored from the Coinz MetricCard: label with a bare icon,
+ * tabular figure with a delta pill, one hint line, and a compact sparkline on
+ * the right when the card has room.
+ */
 export function MetricCard({
   icon,
   label,
@@ -33,6 +47,8 @@ export function MetricCard({
   invertChange,
   hint,
   tone = "default",
+  series,
+  seriesLabel,
   children,
 }: {
   icon?: IconData
@@ -44,30 +60,74 @@ export function MetricCard({
   invertChange?: boolean
   hint?: ReactNode
   tone?: "default" | "positive" | "warning" | "negative"
+  /** Oldest-to-newest values for the trend glyph. */
+  series?: number[]
+  /** Accessible description of the trend. */
+  seriesLabel?: string
   children?: ReactNode
 }) {
   return (
-    <Card className="min-w-0 gap-0 px-4 py-3.5">
-      <div className="flex items-center gap-1.5 text-muted-foreground">
-        {icon ? <HugeiconsIcon icon={icon} size={14} strokeWidth={1.8} /> : null}
-        <span className="truncate text-xs font-medium">{label}</span>
+    <Card className="@container min-w-0 gap-0 px-3.5 pt-3 pb-3">
+      <div className="flex min-w-0 items-center gap-2">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5 text-muted-foreground">
+            {icon ? <HugeiconsIcon icon={icon} size={13} strokeWidth={1.8} className="shrink-0" /> : null}
+            <span className="truncate text-xs">{label}</span>
+          </div>
+          <div className="mt-1 flex min-w-0 items-baseline gap-1.5">
+            <span
+              className={cn(
+                "truncate font-heading text-lg font-medium tracking-[-0.025em] tabular-nums @[15rem]:text-xl",
+                tone === "positive" && "text-emerald-600 dark:text-emerald-400",
+                tone === "warning" && "text-amber-600 dark:text-amber-400",
+                tone === "negative" && "text-destructive",
+              )}
+            >
+              {value}
+            </span>
+            {change !== undefined && change !== null ? <ChangePill change={change} invert={invertChange} /> : null}
+          </div>
+        </div>
+        {series && series.length > 1 ? <Sparkline series={series} stroke={TONE_STROKE[tone]} label={seriesLabel ?? `${label} trend`} /> : null}
       </div>
-      <div className="mt-1.5 flex min-w-0 items-baseline gap-2">
-        <span
-          className={cn(
-            "truncate font-heading text-2xl font-semibold tracking-[-0.02em] tabular-nums",
-            tone === "positive" && "text-emerald-600 dark:text-emerald-400",
-            tone === "warning" && "text-amber-600 dark:text-amber-400",
-            tone === "negative" && "text-destructive",
-          )}
-        >
-          {value}
-        </span>
-        {change !== undefined && change !== null ? <ChangePill change={change} invert={invertChange} /> : null}
-      </div>
-      {hint ? <div className="mt-1 text-xs text-muted-foreground">{hint}</div> : null}
+      {hint ? <div className="mt-1 truncate text-xs text-muted-foreground">{hint}</div> : null}
       {children}
     </Card>
+  )
+}
+
+function Sparkline({ series, stroke, label }: { series: number[]; stroke: string; label: string }) {
+  const gradientId = `spark-${useId().replace(/:/g, "")}`
+  const width = 64
+  const height = 30
+  const pad = 2
+  const max = Math.max(...series)
+  const min = Math.min(...series)
+  const span = max - min || 1
+  const points = series.map((v, i) => ({
+    x: (i / (series.length - 1)) * width,
+    y: pad + (1 - (v - min) / span) * (height - pad * 2),
+  }))
+  const line = points.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ")
+  return (
+    <svg
+      width="56"
+      height="30"
+      viewBox={`0 0 ${width} ${height}`}
+      className="hidden shrink-0 overflow-visible @[12rem]:block"
+      role="img"
+      aria-label={label}
+    >
+      <title>{label}</title>
+      <defs>
+        <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={stroke} stopOpacity="0.22" />
+          <stop offset="100%" stopColor={stroke} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={`${line} L${width},${height} L0,${height} Z`} fill={`url(#${gradientId})`} />
+      <path d={line} fill="none" stroke={stroke} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   )
 }
 
@@ -171,7 +231,7 @@ export function ToneBadge({ tone, children }: { tone: "positive" | "warning" | "
         tone === "warning" && "border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-400",
         tone === "negative" && "border-destructive/25 bg-destructive/10 text-destructive",
         tone === "neutral" && "border-border bg-muted text-muted-foreground",
-        tone === "info" && "border-accent/40 bg-accent/15 text-foreground",
+        tone === "info" && "border-brand/30 bg-brand/10 text-foreground",
       )}
     >
       {children}

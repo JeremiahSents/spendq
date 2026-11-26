@@ -10,13 +10,13 @@ import {
   SparklesIcon,
 } from "@hugeicons/core-free-icons"
 
-import { DataLabel, EmptyState, MetricCard, PageHeader } from "@/components/shared/dashboard-ui"
+import { DataLabel, EmptyState, METRIC_GRID, MetricCard, PageHeader } from "@/components/shared/dashboard-ui"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { perMonth, perYear } from "@/lib/format"
-import { savings } from "@/lib/store/selectors"
+import { savings, sparkSeries } from "@/lib/store/selectors"
 import { useSpend } from "@/lib/store/spend-store"
 import { cn } from "@/lib/utils"
 
@@ -62,16 +62,18 @@ export function RecommendationsView() {
         }
       />
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className={METRIC_GRID}>
         <MetricCard
           icon={MoneySavingJarIcon}
           label="Total potential monthly savings"
+          series={sparkSeries(s.potentialMonthly)}
           value={perMonth(s.potentialMonthly)}
           hint={<span className="font-mono tabular-nums">{perYear(s.potentialAnnual)} if all pending are approved</span>}
         />
         <MetricCard
           icon={CheckmarkCircle02Icon}
           label="Approved projected savings"
+          series={sparkSeries(s.approvedMonthly)}
           value={perMonth(s.approvedMonthly)}
           tone="positive"
           hint={
@@ -101,13 +103,15 @@ export function RecommendationsView() {
         <MetricCard
           icon={Clock01Icon}
           label="Pending recommendations"
+          series={sparkSeries(s.pendingCount)}
           value={String(s.pendingCount)}
           tone={s.pendingCount > 0 ? "warning" : "default"}
-          hint="Awaiting an approve or dismiss decision"
+          hint="Awaiting a decision"
         />
         <MetricCard
           icon={CheckmarkCircle02Icon}
           label="Completed / approved actions"
+          series={sparkSeries(s.approvedCount)}
           value={String(s.approvedCount)}
           hint={<span className="font-mono tabular-nums">{s.dismissedCount} dismissed</span>}
         />
