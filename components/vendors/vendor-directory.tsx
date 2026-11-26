@@ -12,12 +12,12 @@ import { Input } from "@/components/ui/input"
 import { DEPARTMENTS } from "@/lib/data/seed"
 import type { Vendor } from "@/lib/data/types"
 import { money, shortDate } from "@/lib/format"
-import { daysUntil, licenseUtilization, recommendationFor, unusedUnits, vendorMonthly } from "@/lib/store/selectors"
+import { daysUntil, licenseUtilization, unusedUnits, vendorMonthly } from "@/lib/store/selectors"
 import { useSpend, type SpendState } from "@/lib/store/spend-store"
 import { cn } from "@/lib/utils"
 
 import { FilterSelect } from "./filter-select"
-import { DaysBadge, LicenseBar, VendorStatusBadge } from "./vendor-status"
+import { DaysBadge, LicenseBar, VendorStatusBadge, isUsageBased, primaryVendorRec, vendorRecs } from "./vendor-status"
 
 type StatusFilter = "all" | "flagged" | "renewing" | "approved" | "healthy"
 
@@ -41,7 +41,14 @@ function vendorColumns(state: SpendState): Array<SpendColumn<Vendor>> {
           <div className="flex items-center gap-2.5">
             <BrandLogo brand={v.brand} size="sm" />
             <div className="min-w-0">
-              <div className="truncate font-medium">{v.name}</div>
+              <div className="flex min-w-0 items-center gap-1.5">
+                <span className="truncate font-medium">{v.name}</span>
+                {v.createdInDemo ? (
+                  <span className="inline-flex h-4 shrink-0 items-center rounded border border-dashed px-1 font-mono text-[10px] tracking-wide text-muted-foreground">
+                    Added in demo
+                  </span>
+                ) : null}
+              </div>
               <div className="truncate text-xs text-muted-foreground">
                 {v.plan} · {v.department}
               </div>
@@ -81,10 +88,18 @@ function vendorColumns(state: SpendState): Array<SpendColumn<Vendor>> {
     {
       id: "utilization",
       header: "Licenses",
-      accessorFn: (v) => licenseUtilization(v),
+      accessorFn: (v) => (isUsageBased(v) ? 101 : licenseUtilization(v)),
       meta: { className: "min-w-44" },
       cell: ({ row }) => {
         const v = row.original
+        if (isUsageBased(v)) {
+          return (
+            <>
+              <div className="text-xs">Usage-based</div>
+              <div className="mt-0.5 text-[11px] text-muted-foreground">Billed on consumption</div>
+            </>
+          )
+        }
         const unused = unusedUnits(v)
         return (
           <>
@@ -123,7 +138,10 @@ function vendorColumns(state: SpendState): Array<SpendColumn<Vendor>> {
       id: "status",
       header: "Optimization status",
       enableSorting: false,
-      cell: ({ row }) => <VendorStatusBadge rec={recommendationFor(state, row.original.id)} />,
+      cell: ({ row }) => {
+        const recs = vendorRecs(state, row.original.id)
+        return <VendorStatusBadge rec={recs[0]} more={recs.length - 1} />
+      },
     },
   ]
 }
@@ -144,7 +162,7 @@ export function VendorDirectory() {
       if (q && ![v.name, v.category, v.department, v.plan].some((s) => s.toLowerCase().includes(q))) return false
       if (category !== "all" && v.category !== category) return false
       if (department !== "all" && v.department !== department) return false
-      const rec = recommendationFor(state, v.id)
+      const rec = primaryVendorRec(state, v.id)
       const days = daysUntil(v.renewalDate)
       switch (status) {
         case "flagged":

@@ -2,13 +2,14 @@
 
 import { useState } from "react"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { Database02Icon } from "@hugeicons/core-free-icons"
+import { ApiIcon, Database02Icon } from "@hugeicons/core-free-icons"
 import { toast } from "sonner"
 
 import { BrandLogo } from "@/components/shared/brand-logo"
 import { PageHeader, ToneBadge } from "@/components/shared/dashboard-ui"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { API_URL } from "@/lib/api/backend-data"
 import type { Integration } from "@/lib/data/types"
 import { useSpend } from "@/lib/store/spend-store"
 
@@ -63,6 +64,8 @@ export function IntegrationsView() {
         }
       />
 
+      <BackendCard />
+
       {grouped.map((g) => (
         <section key={g.title} className="space-y-2.5">
           <h2 className="font-heading text-sm font-semibold">{g.title}</h2>
@@ -108,8 +111,57 @@ export function IntegrationsView() {
       ))}
 
       <p className="text-xs text-muted-foreground">
-        Live API connections are out of scope for the hackathon; every connection here reads simulated data.
+        Provider connections are simulated for the hackathon; only the SpendQ backend above supplies real findings and contracts.
       </p>
     </div>
+  )
+}
+
+/** Where the findings and contracts come from: the live FastAPI service or its exported fixtures. */
+function BackendCard() {
+  const { state } = useSpend()
+  const findings = state.recommendations.filter((r) => r.actionId).length
+  const contracts = state.vendors.filter((v) => v.id.startsWith("be-")).length
+  const live = Boolean(API_URL)
+
+  const stats = [
+    { label: "Backend findings", value: String(findings) },
+    { label: "Backend contracts", value: String(contracts) },
+    { label: "Storage", value: "This browser (localStorage)" },
+  ]
+
+  return (
+    <section className="space-y-2.5">
+      <h2 className="font-heading text-sm font-semibold">Data source</h2>
+      <Card className="min-w-0 gap-3 px-4 py-4">
+        <div className="flex items-start gap-3">
+          <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border bg-muted text-muted-foreground">
+            <HugeiconsIcon icon={ApiIcon} size={16} strokeWidth={1.8} />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-medium">SpendQ backend</p>
+            {live ? (
+              <p className="truncate font-mono text-xs text-muted-foreground" title={API_URL}>
+                {API_URL}
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Running on the backend&apos;s exported data. Set{" "}
+                <code className="font-mono text-[11px]">NEXT_PUBLIC_API_URL</code> to connect the live FastAPI service.
+              </p>
+            )}
+          </div>
+          <ToneBadge tone={live ? "positive" : "info"}>{live ? "Live API" : "Exported fixtures"}</ToneBadge>
+        </div>
+        <dl className="grid gap-x-6 gap-y-2 border-t pt-3 sm:grid-cols-3">
+          {stats.map((s) => (
+            <div key={s.label} className="min-w-0">
+              <dt className="text-xs text-muted-foreground">{s.label}</dt>
+              <dd className="mt-0.5 truncate font-mono text-sm tabular-nums">{s.value}</dd>
+            </div>
+          ))}
+        </dl>
+      </Card>
+    </section>
   )
 }

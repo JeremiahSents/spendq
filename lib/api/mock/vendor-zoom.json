@@ -1,0 +1,352 @@
+{
+  "id": "ven_zoom",
+  "name": "Zoom Video Communications Inc",
+  "canonical_vendor_id": "ven_zoom",
+  "canonical_name": "Zoom Video Communications",
+  "category": "software",
+  "country": "US",
+  "spend_12m_kes": 6966000.0,
+  "contract_count": 1,
+  "open_finding_count": 3,
+  "contracts": [
+    {
+      "id": "con_zoom_mkt",
+      "vendor_id": "ven_zoom",
+      "vendor_name": "Zoom Video Communications",
+      "department_id": "dep_marketing_ke",
+      "department_name": "Marketing",
+      "title": "Zoom Business licences",
+      "service_category": "video_conferencing",
+      "capabilities": [
+        "video_conferencing",
+        "webinars"
+      ],
+      "billing_cycle": "monthly",
+      "unit": "seat/month",
+      "unit_price": 15.0,
+      "currency": "USD",
+      "quantity": 300,
+      "start_date": "2025-01-10",
+      "end_date": "2027-01-09",
+      "auto_renew": true,
+      "notice_days": 30,
+      "notice_deadline": "2026-12-10",
+      "days_to_end": 40,
+      "annual_value_kes": 6966000.0,
+      "pdf_path": "contracts/con_zoom_mkt.pdf"
+    }
+  ],
+  "invoices": [
+    {
+      "id": "inv_0196",
+      "invoice_number": "ZOOM-2611-1232",
+      "vendor_id": "ven_zoom",
+      "vendor_name": "Zoom Video Communications",
+      "contract_id": "con_zoom_mkt",
+      "department_id": "dep_marketing_ke",
+      "invoice_date": "2026-11-05",
+      "description": "Zoom Business licences, November 2026",
+      "quantity": 300.0,
+      "unit_price": 15.0,
+      "amount": 4500.0,
+      "currency": "USD",
+      "amount_kes": 580500.0,
+      "etims_number": null
+    },
+    {
+      "id": "inv_0178",
+      "invoice_number": "ZOOM-2610-1212",
+      "vendor_id": "ven_zoom",
+      "vendor_name": "Zoom Video Communications",
+      "contract_id": "con_zoom_mkt",
+      "department_id": "dep_marketing_ke",
+      "invoice_date": "2026-10-05",
+      "description": "Zoom Business licences, October 2026",
+      "quantity": 300.0,
+      "unit_price": 15.0,
+      "amount": 4500.0,
+      "currency": "USD",
+      "amount_kes": 580500.0,
+      "etims_number": null
+    },
+    {
+      "id": "inv_0161",
+      "invoice_number": "ZOOM-2609-1192",
+      "vendor_id": "ven_zoom",
+      "vendor_name": "Zoom Video Communications",
+      "contract_id": "con_zoom_mkt",
+      "department_id": "dep_marketing_ke",
+      "invoice_date": "2026-09-05",
+      "description": "Zoom Business licences, September 2026",
+      "quantity": 300.0,
+      "unit_price": 15.0,
+      "amount": 4500.0,
+      "currency": "USD",
+      "amount_kes": 580500.0,
+      "etims_number": null
+    },
+    {
+      "id": "inv_0143",
+      "invoice_number": "ZOOM-2608-1171",
+      "vendor_id": "ven_zoom",
+      "vendor_name": "Zoom Video Communications",
+      "contract_id": "con_zoom_mkt",
+      "department_id": "dep_marketing_ke",
+      "invoice_date": "2026-08-05",
+      "description": "Zoom Business licences, August 2026",
+      "quantity": 300.0,
+      "unit_price": 15.0,
+      "amount": 4500.0,
+      "currency": "USD",
+      "amount_kes": 580500.0,
+      "etims_number": null
+    },
+    {
+      "id": "inv_0125",
+      "invoice_number": "ZOOM-2607-1150",
+      "vendor_id": "ven_zoom",
+      "vendor_name": "Zoom Video Communications",
+      "contract_id": "con_zoom_mkt",
+      "department_id": "dep_marketing_ke",
+      "invoice_date": "2026-07-05",
+      "description": "Zoom Business licences, July 2026",
+      "quantity": 300.0,
+      "unit_price": 15.0,
+      "amount": 4500.0,
+      "currency": "USD",
+      "amount_kes": 580500.0,
+      "etims_number": null
+    },
+    {
+      "id": "inv_0108",
+      "invoice_number": "ZOOM-2606-1129",
+      "vendor_id": "ven_zoom",
+      "vendor_name": "Zoom Video Communications",
+      "contract_id": "con_zoom_mkt",
+      "department_id": "dep_marketing_ke",
+      "invoice_date": "2026-06-05",
+      "description": "Zoom Business licences, June 2026",
+      "quantity": 300.0,
+      "unit_price": 15.0,
+      "amount": 4500.0,
+      "currency": "USD",
+      "amount_kes": 580500.0,
+      "etims_number": null
+    },
+    {
+      "id": "inv_0091",
+      "invoice_number": "ZOOM-2605-1108",
+      "vendor_id": "ven_zoom",
+      "vendor_name": "Zoom Video Communications",
+      "contract_id": "con_zoom_mkt",
+      "department_id": "dep_marketing_ke",
+      "invoice_date": "2026-05-05",
+      "description": "Zoom Business licences, May 2026",
+      "quantity": 300.0,
+      "unit_price": 15.0,
+      "amount": 4500.0,
+      "currency": "USD",
+      "amount_kes": 580500.0,
+      "etims_number": null
+    },
+    {
+      "id": "inv_0074",
+      "invoice_number": "ZOOM-2604-1087",
+      "vendor_id": "ven_zoom",
+      "vendor_name": "Zoom Video Communications",
+      "contract_id": "con_zoom_mkt",
+      "department_id": "dep_marketing_ke",
+      "invoice_date": "2026-04-05",
+      "description": "Zoom Business licences, April 2026",
+      "quantity": 300.0,
+      "unit_price": 15.0,
+      "amount": 4500.0,
+      "currency": "USD",
+      "amount_kes": 580500.0,
+      "etims_number": null
+    },
+    {
+      "id": "inv_0057",
+      "invoice_number": "ZOOM-2603-1066",
+      "vendor_id": "ven_zoom",
+      "vendor_name": "Zoom Video Communications",
+      "contract_id": "con_zoom_mkt",
+      "department_id": "dep_marketing_ke",
+      "invoice_date": "2026-03-05",
+      "description": "Zoom Business licences, March 2026",
+      "quantity": 300.0,
+      "unit_price": 15.0,
+      "amount": 4500.0,
+      "currency": "USD",
+      "amount_kes": 580500.0,
+      "etims_number": null
+    },
+    {
+      "id": "inv_0040",
+      "invoice_number": "ZOOM-2602-1045",
+      "vendor_id": "ven_zoom",
+      "vendor_name": "Zoom Video Communications",
+      "contract_id": "con_zoom_mkt",
+      "department_id": "dep_marketing_ke",
+      "invoice_date": "2026-02-05",
+      "description": "Zoom Business licences, February 2026",
+      "quantity": 300.0,
+      "unit_price": 15.0,
+      "amount": 4500.0,
+      "currency": "USD",
+      "amount_kes": 580500.0,
+      "etims_number": null
+    },
+    {
+      "id": "inv_0023",
+      "invoice_number": "ZOOM-2601-1025",
+      "vendor_id": "ven_zoom",
+      "vendor_name": "Zoom Video Communications",
+      "contract_id": "con_zoom_mkt",
+      "department_id": "dep_marketing_ke",
+      "invoice_date": "2026-01-05",
+      "description": "Zoom Business licences, January 2026",
+      "quantity": 300.0,
+      "unit_price": 15.0,
+      "amount": 4500.0,
+      "currency": "USD",
+      "amount_kes": 580500.0,
+      "etims_number": null
+    },
+    {
+      "id": "inv_0005",
+      "invoice_number": "ZOOM-2512-1005",
+      "vendor_id": "ven_zoom",
+      "vendor_name": "Zoom Video Communications",
+      "contract_id": "con_zoom_mkt",
+      "department_id": "dep_marketing_ke",
+      "invoice_date": "2025-12-05",
+      "description": "Zoom Business licences, December 2025",
+      "quantity": 300.0,
+      "unit_price": 15.0,
+      "amount": 4500.0,
+      "currency": "USD",
+      "amount_kes": 580500.0,
+      "etims_number": null
+    }
+  ],
+  "findings": [
+    {
+      "id": "fnd_001",
+      "type": "unused_licence",
+      "title": "204 of 300 Zoom seats unused in the last 90 days",
+      "explanation": "Marketing pays for 300 Zoom Business seats. Only 96 people signed in in the last 90 days, and 41 assigned users never signed in. Cutting to active users saves KES 4,736,880 a year.",
+      "amount_at_issue_kes": 4736880.0,
+      "est_saving_kes": 4736880.0,
+      "saving_basis": "annual",
+      "confidence": 0.9,
+      "status": "open",
+      "department_id": "dep_marketing_ke",
+      "department_name": "Marketing",
+      "vendor_ids": [
+        "ven_zoom"
+      ],
+      "vendor_names": [
+        "Zoom Video Communications"
+      ],
+      "contract_ids": [
+        "con_zoom_mkt"
+      ],
+      "invoice_ids": [],
+      "licence_ids": [
+        "lic_zoom_mkt"
+      ],
+      "related_finding_ids": [
+        "fnd_002",
+        "fnd_007"
+      ],
+      "evidence": {
+        "seats_paid": 300,
+        "seats_assigned": 262,
+        "seats_active_90d": 96,
+        "never_signed_in": 41
+      },
+      "detected_at": "2026-11-30T05:00:00Z"
+    },
+    {
+      "id": "fnd_002",
+      "type": "vendor_overlap",
+      "title": "Zoom duplicates video conferencing already paid for in Microsoft 365",
+      "explanation": "Microsoft 365 E3 enterprise agreement (1700 seats) already covers video conferencing. The 96 active Zoom Business licences users could move across, saving KES 2,229,120 a year on top of the unused seats.",
+      "amount_at_issue_kes": 6966000.0,
+      "est_saving_kes": 2229120.0,
+      "saving_basis": "annual",
+      "confidence": 0.7,
+      "status": "open",
+      "department_id": "dep_marketing_ke",
+      "department_name": "Marketing",
+      "vendor_ids": [
+        "ven_zoom",
+        "ven_microsoft"
+      ],
+      "vendor_names": [
+        "Zoom Video Communications",
+        "Microsoft"
+      ],
+      "contract_ids": [
+        "con_zoom_mkt",
+        "con_m365_ke"
+      ],
+      "invoice_ids": [],
+      "licence_ids": [
+        "lic_zoom_mkt",
+        "lic_m365_ke"
+      ],
+      "related_finding_ids": [
+        "fnd_001",
+        "fnd_007"
+      ],
+      "evidence": {
+        "shared_capability": [
+          "video_conferencing"
+        ],
+        "tools": [
+          "Zoom Business licences",
+          "Microsoft 365 E3 enterprise agreement"
+        ],
+        "narrow_tool_active_users": 96
+      },
+      "detected_at": "2026-11-30T05:00:00Z"
+    },
+    {
+      "id": "fnd_007",
+      "type": "renewal_due",
+      "title": "Zoom auto-renews on 09 Jan 2027; notice due by 10 Dec",
+      "explanation": "The Zoom Business licences contract renews automatically unless notice is given 30 days before 09 January 2027. That leaves 10 days to act on the open findings for this contract.",
+      "amount_at_issue_kes": 6966000.0,
+      "est_saving_kes": 0.0,
+      "saving_basis": "none",
+      "confidence": 1.0,
+      "status": "open",
+      "department_id": "dep_marketing_ke",
+      "department_name": "Marketing",
+      "vendor_ids": [
+        "ven_zoom"
+      ],
+      "vendor_names": [
+        "Zoom Video Communications"
+      ],
+      "contract_ids": [
+        "con_zoom_mkt"
+      ],
+      "invoice_ids": [],
+      "licence_ids": [],
+      "related_finding_ids": [
+        "fnd_001",
+        "fnd_002"
+      ],
+      "evidence": {
+        "end_date": "2027-01-09",
+        "notice_deadline": "2026-12-10",
+        "days_to_notice_deadline": 10,
+        "auto_renew": true
+      },
+      "detected_at": "2026-11-30T05:00:00Z"
+    }
+  ]
+}

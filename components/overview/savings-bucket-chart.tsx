@@ -14,6 +14,10 @@ const config = {
   approved: { label: "Approved (Projected)", theme: SAVINGS_COLOR },
 } satisfies ChartConfig
 
+/** Rows come from SAVINGS_BUCKETS (via savingsByBucket); give each about 34px plus axis and legend. */
+const ROW_HEIGHT = 34
+const CHROME_HEIGHT = 56
+
 export function SavingsBucketChart() {
   const { state } = useSpend()
   const data = savingsByBucket(state)
@@ -25,7 +29,11 @@ export function SavingsBucketChart() {
       description={`${money(s.potentialMonthly)}/mo pending · ${money(s.approvedMonthly)}/mo approved (projected)`}
       action={<DataLabel kind="projected" />}
     >
-      <ChartContainer config={config} className={CHART_CLASS}>
+      <ChartContainer
+        config={config}
+        className={CHART_CLASS}
+        style={{ height: Math.max(230, data.length * ROW_HEIGHT + CHROME_HEIGHT) }}
+      >
         <BarChart data={data} layout="vertical" margin={{ left: 0, right: 12, top: 0 }} barCategoryGap={8}>
           <CartesianGrid horizontal={false} />
           <XAxis type="number" tickLine={false} axisLine={false} tickFormatter={axisMoney} />

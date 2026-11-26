@@ -2,9 +2,24 @@
 
 import type { ReactNode } from "react"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { ArrowTurnBackwardIcon, Cancel01Icon, LinkSquare02Icon, Tick02Icon } from "@hugeicons/core-free-icons"
+import {
+  AiSearch02Icon,
+  ArrowTurnBackwardIcon,
+  Cancel01Icon,
+  LinkSquare02Icon,
+  Tick02Icon,
+} from "@hugeicons/core-free-icons"
 
-import { SOURCE_LABEL } from "@/components/recommendations/filters"
+import { EngineTag } from "@/components/recommendations/engine-tag"
+import {
+  SOURCE_LABEL,
+  approveLabel,
+  engineConfidence,
+  isEngineRec,
+  oneTimeAmount,
+  savingKind,
+  zeroSavingLabel,
+} from "@/components/recommendations/filters"
 import { BrandLogo } from "@/components/shared/brand-logo"
 import { DataLabel, EmptyState, PillarBadge, RecStatusBadge, RiskBadge } from "@/components/shared/dashboard-ui"
 import { Button } from "@/components/ui/button"
@@ -14,6 +29,10 @@ import { PILLAR_COPY } from "@/lib/store/build"
 import { recSavings } from "@/lib/store/selectors"
 import { useSpend } from "@/lib/store/spend-store"
 import { useRecActions } from "@/lib/store/use-rec-actions"
+import { cn } from "@/lib/utils"
+
+/** Evidence keys arrive snake_case-turned-lowercase ("seats paid"); sentence-case them. */
+const sentence = (label: string) => label.charAt(0).toUpperCase() + label.slice(1)
 
 function Section({ title, children, aside }: { title: string; children: ReactNode; aside?: ReactNode }) {
   return (
@@ -53,6 +72,12 @@ export function RecommendationDrawer({ id }: { id: string }) {
   const saving = recSavings(rec)
   const reduction = rec.currentMonthly > 0 ? (saving / rec.currentMonthly) * 100 : 0
   const sourceKind = rec.source === "cloud" ? "resource" : rec.source === "vendor" ? "vendor" : "request"
+  const engine = isEngineRec(rec)
+  const kind = savingKind(rec)
+  const confidence = engineConfidence(rec)
+  const atIssue = rec.evidence.find((e) => e.label === "Amount at issue")?.value
+  // Engine findings get their own confidence line; keep it out of the grid.
+  const evidence = engine ? rec.evidence.filter((e) => e.label !== "Confidence") : rec.evidence
 
   return (
     <>
@@ -68,6 +93,7 @@ export function RecommendationDrawer({ id }: { id: string }) {
               <span>{SOURCE_LABEL[rec.source]}</span>
               <span aria-hidden>·</span>
               <span>{rec.department}</span>
+              {engine ? <EngineTag /> : null}
             </div>
           </div>
         </div>
@@ -77,6 +103,18 @@ export function RecommendationDrawer({ id }: { id: string }) {
       <div className="flex-1 space-y-6 overflow-y-auto px-4 pb-4">
         <Section title="Problem">
           <p className="text-sm leading-relaxed">{rec.problem || "No analysis recorded for this item."}</p>
+          {engine ? (
+            <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <HugeiconsIcon icon={AiSearch02Icon} size={14} strokeWidth={1.8} />
+              Detected by SpendQ engine
+              {confidence ? (
+                <>
+                  <span aria-hidden>·</span>
+                  <span className="font-mono tabular-nums">confidence {confidence}</span>
+                </>
+              ) : null}
+            </p>
+          ) : null}
         </Section>
 
         <Section
@@ -89,14 +127,27 @@ export function RecommendationDrawer({ id }: { id: string }) {
           }
         >
           <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border bg-border">
-            {rec.evidence.map((e, i) => (
-              <div key={`${e.label}-${i}`} className="min-w-0 bg-popover px-3 py-2 last:odd:col-span-2">
-                <dt className="text-[11px] text-muted-foreground">{e.label}</dt>
-                <dd className="truncate font-mono text-xs font-medium tabular-nums" title={e.value}>
-                  {e.value}
-                </dd>
-              </div>
-            ))}
+            {evidence.map((e, i) => {
+              // Long free-text evidence (a contract clause, say) spans the full width and wraps.
+              const long = engine && e.value.length > 32
+              return (
+                <div
+                  key={`${e.label}-${i}`}
+                  className={cn("min-w-0 bg-popover px-3 py-2", long ? "col-span-2" : "last:odd:col-span-2")}
+                >
+                  <dt className="text-[11px] text-muted-foreground">{engine ? sentence(e.label) : e.label}</dt>
+                  <dd
+                    className={cn(
+                      "font-mono text-xs font-medium tabular-nums",
+                      engine ? "break-words whitespace-normal" : "truncate",
+                    )}
+                    title={e.value}
+                  >
+                    {e.value}
+                  </dd>
+                </div>
+              )
+            })}
           </dl>
         </Section>
 
@@ -114,31 +165,70 @@ export function RecommendationDrawer({ id }: { id: string }) {
         </Section>
 
         <Section title="Financial impact" aside={<DataLabel kind="projected" />}>
-          <div className="space-y-3 rounded-lg border p-3">
-            <div className="flex items-center justify-between gap-3 font-mono text-sm tabular-nums">
-              <span className="text-muted-foreground">
-                {perMonth(rec.currentMonthly)} <span aria-hidden>→</span> {perMonth(rec.recommendedMonthly)}
-              </span>
-              <span className="text-xs text-emerald-700 dark:text-emerald-400">−{pct(reduction)}</span>
+          {kind === "none" ? (
+            <div className="space-y-1 rounded-lg border p-3">
+              <p
+                className={cn(
+                  "font-heading text-lg font-semibold",
+                  rec.category === "Renewal notice" ? "text-destructive" : "text-amber-700 dark:text-amber-400",
+                )}
+              >
+                {zeroSavingLabel(rec)}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                No direct saving is booked for this finding. Assigning it hands it to the budget owner
+                {rec.category === "Renewal notice" ? " to send notice before the deadline." : " to investigate."}
+                {atIssue ? ` Amount at issue: ${atIssue}.` : null}
+              </p>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <p className="text-[11px] text-muted-foreground">Monthly projected savings</p>
-                <p className="font-heading text-xl font-semibold text-emerald-600 tabular-nums dark:text-emerald-400">
-                  {money(saving)}
-                </p>
+          ) : kind === "one-time" ? (
+            <div className="space-y-3 rounded-lg border p-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className="text-[11px] text-muted-foreground">One-time recovery</p>
+                  <p className="font-heading text-xl font-semibold text-emerald-600 tabular-nums dark:text-emerald-400">
+                    {money(oneTimeAmount(rec))}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[11px] text-muted-foreground">Spread over 12 months</p>
+                  <p className="font-heading text-xl font-semibold text-emerald-600 tabular-nums dark:text-emerald-400">
+                    {perMonth(saving)}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-[11px] text-muted-foreground">Annual projected savings</p>
-                <p className="font-heading text-xl font-semibold text-emerald-600 tabular-nums dark:text-emerald-400">
-                  {perYear(saving * 12)}
-                </p>
+              <p className="text-xs text-muted-foreground">
+                A single credit or refund, not a recurring saving. The monthly figure spreads it over a year so it adds up
+                with the rest of the queue.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3 rounded-lg border p-3">
+              <div className="flex items-center justify-between gap-3 font-mono text-sm tabular-nums">
+                <span className="text-muted-foreground">
+                  {perMonth(rec.currentMonthly)} <span aria-hidden>→</span> {perMonth(rec.recommendedMonthly)}
+                </span>
+                <span className="text-xs text-emerald-700 dark:text-emerald-400">−{pct(reduction)}</span>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className="text-[11px] text-muted-foreground">Monthly projected savings</p>
+                  <p className="font-heading text-xl font-semibold text-emerald-600 tabular-nums dark:text-emerald-400">
+                    {money(saving)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[11px] text-muted-foreground">Annual projected savings</p>
+                  <p className="font-heading text-xl font-semibold text-emerald-600 tabular-nums dark:text-emerald-400">
+                    {perYear(saving * 12)}
+                  </p>
+                </div>
+              </div>
+              <div className="h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden>
+                <div className="h-full rounded-full bg-emerald-500" style={{ width: `${Math.min(100, Math.max(2, reduction))}%` }} />
               </div>
             </div>
-            <div className="h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden>
-              <div className="h-full rounded-full bg-emerald-500" style={{ width: `${Math.min(100, Math.max(2, reduction))}%` }} />
-            </div>
-          </div>
+          )}
         </Section>
 
         <Section title="Risks & dependencies" aside={<RiskBadge risk={rec.risk} />}>
@@ -164,7 +254,13 @@ export function RecommendationDrawer({ id }: { id: string }) {
       <SheetFooter className="flex-row items-center justify-between border-t">
         {rec.status === "Pending" ? (
           <>
-            <span className="font-mono text-xs text-muted-foreground tabular-nums">{perMonth(saving)} at stake</span>
+            <span className="font-mono text-xs text-muted-foreground tabular-nums">
+              {kind === "none"
+                ? zeroSavingLabel(rec)
+                : kind === "one-time"
+                  ? `${money(oneTimeAmount(rec))} one-time at stake`
+                  : `${perMonth(saving)} at stake`}
+            </span>
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => dismiss(rec.id)}>
                 <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} />
@@ -172,7 +268,7 @@ export function RecommendationDrawer({ id }: { id: string }) {
               </Button>
               <Button onClick={() => approve(rec.id)}>
                 <HugeiconsIcon icon={Tick02Icon} strokeWidth={2} />
-                Approve
+                {approveLabel(rec)}
               </Button>
             </div>
           </>
@@ -181,7 +277,13 @@ export function RecommendationDrawer({ id }: { id: string }) {
             <div className="flex items-center gap-2 text-sm">
               <RecStatusBadge status={rec.status} />
               <span className="text-muted-foreground">
-                {rec.status === "Approved" ? `${perMonth(saving)} approved projected savings` : "Dismissed from the queue"}
+                {rec.status === "Dismissed"
+                  ? "Dismissed from the queue"
+                  : kind === "none"
+                    ? "Assigned to the budget owner"
+                    : kind === "one-time"
+                      ? `${money(oneTimeAmount(rec))} one-time recovery approved`
+                      : `${perMonth(saving)} approved projected savings`}
               </span>
             </div>
             <Button variant="outline" onClick={() => resetRecommendation(rec.id)}>

@@ -31,6 +31,7 @@ import {
   type StatusFilter,
 } from "./filters"
 import { RecommendationRow } from "./recommendation-row"
+import { SavingsLedger } from "./savings-ledger"
 
 export function RecommendationsView() {
   const { state, setCopilotOpen } = useSpend()
@@ -53,7 +54,7 @@ export function RecommendationsView() {
     <div className="space-y-5">
       <PageHeader
         title="Recommendations"
-        description="One action queue for cloud, vendor and procurement savings."
+        description="One action queue for cloud, vendor, procurement, contract and invoice savings."
         actions={
           <Button variant="outline" size="sm" onClick={() => setCopilotOpen(true)}>
             <HugeiconsIcon icon={SparklesIcon} strokeWidth={2} />
@@ -209,6 +210,8 @@ export function RecommendationsView() {
           </div>
         )}
       </Card>
+
+      <SavingsLedger />
     </div>
   )
 }

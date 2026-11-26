@@ -1,0 +1,95 @@
+{
+  "nodes": [
+    {
+      "id": "ven_zoom",
+      "position": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "data": {
+        "kind": "vendor",
+        "label": "Zoom Video Communications",
+        "sublabel": "Zoom Video Communications Inc",
+        "highlight": false
+      }
+    },
+    {
+      "id": "con_zoom_mkt",
+      "position": {
+        "x": 280.0,
+        "y": 0.0
+      },
+      "data": {
+        "kind": "contract",
+        "label": "Zoom Business licences",
+        "sublabel": "USD 15.00 / seat/month",
+        "highlight": true
+      }
+    },
+    {
+      "id": "dep_marketing_ke",
+      "position": {
+        "x": 560.0,
+        "y": 0.0
+      },
+      "data": {
+        "kind": "department",
+        "label": "Marketing",
+        "sublabel": "owner",
+        "highlight": false
+      }
+    },
+    {
+      "id": "lic_zoom_mkt",
+      "position": {
+        "x": 560.0,
+        "y": 110.0
+      },
+      "data": {
+        "kind": "licence",
+        "label": "Zoom Business",
+        "sublabel": "300 seats paid",
+        "highlight": false
+      }
+    },
+    {
+      "id": "usage_lic_zoom_mkt",
+      "position": {
+        "x": 840.0,
+        "y": 0.0
+      },
+      "data": {
+        "kind": "usage",
+        "label": "96 active in 90 days",
+        "sublabel": "32% used",
+        "highlight": true
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "ven_zoom->con_zoom_mkt",
+      "source": "ven_zoom",
+      "target": "con_zoom_mkt",
+      "label": null
+    },
+    {
+      "id": "con_zoom_mkt->dep_marketing_ke",
+      "source": "con_zoom_mkt",
+      "target": "dep_marketing_ke",
+      "label": "owned by"
+    },
+    {
+      "id": "con_zoom_mkt->lic_zoom_mkt",
+      "source": "con_zoom_mkt",
+      "target": "lic_zoom_mkt",
+      "label": null
+    },
+    {
+      "id": "lic_zoom_mkt->usage_lic_zoom_mkt",
+      "source": "lic_zoom_mkt",
+      "target": "usage_lic_zoom_mkt",
+      "label": null
+    }
+  ]
+}

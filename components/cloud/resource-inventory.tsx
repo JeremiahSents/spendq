@@ -66,7 +66,14 @@ const COLUMNS: Array<SpendColumn<InventoryRow>> = [
     accessorFn: (row) => row.resource.name,
     cell: ({ row }) => (
       <div>
-        <div className="font-mono text-[12.5px] font-medium">{row.original.resource.name}</div>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="font-mono text-[12.5px] font-medium">{row.original.resource.name}</span>
+          {row.original.resource.createdInDemo ? (
+            <span className="rounded border border-primary/30 bg-primary/10 px-1 py-px text-[10px] font-medium text-primary">
+              Added in demo
+            </span>
+          ) : null}
+        </div>
         <div className="text-[11px] text-muted-foreground">{row.original.resource.department}</div>
       </div>
     ),

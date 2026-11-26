@@ -1,6 +1,9 @@
 "use client"
 
+import * as React from "react"
+import { HugeiconsIcon } from "@hugeicons/react"
 import {
+  Add01Icon,
   Alert02Icon,
   CloudIcon,
   MoneySavingJarIcon,
@@ -10,7 +13,9 @@ import {
 import { CostByProviderChart } from "@/components/cloud/cost-by-provider-chart"
 import { ResourceInventory } from "@/components/cloud/resource-inventory"
 import { UtilizationBands } from "@/components/cloud/utilization-bands"
+import { AddResourceDialog } from "@/components/forms/add-resource-dialog"
 import { DataLabel, METRIC_GRID, MetricCard, PageHeader } from "@/components/shared/dashboard-ui"
+import { Button } from "@/components/ui/button"
 import { money, perMonth, perYear } from "@/lib/format"
 import { cloudSummary, sparkSeries } from "@/lib/store/selectors"
 import { useSpend } from "@/lib/store/spend-store"
@@ -18,14 +23,24 @@ import { useSpend } from "@/lib/store/spend-store"
 export default function CloudPage() {
   const { state } = useSpend()
   const summary = cloudSummary(state)
+  const [addOpen, setAddOpen] = React.useState(false)
 
   return (
     <>
       <PageHeader
         title="Cloud Optimization"
         description="Infrastructure cost, utilization and right-sizing across AWS, Azure, DigitalOcean, Vercel and Neon."
-        actions={<DataLabel kind="simulated" />}
+        actions={
+          <>
+            <DataLabel kind="simulated" />
+            <Button onClick={() => setAddOpen(true)}>
+              <HugeiconsIcon icon={Add01Icon} strokeWidth={2} />
+              Add resource
+            </Button>
+          </>
+        }
       />
+      <AddResourceDialog open={addOpen} onOpenChange={setAddOpen} />
 
       <div className={METRIC_GRID}>
         <MetricCard

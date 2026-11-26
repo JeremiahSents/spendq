@@ -1,0 +1,137 @@
+{
+  "as_of": "2026-11-30",
+  "usd_to_kes": 129.0,
+  "total_spend_12m_kes": 430893209.25,
+  "vendor_count": 18,
+  "contract_count": 21,
+  "found_kes": 10090549.0,
+  "approved_kes": 0.0,
+  "realised_kes": 0.0,
+  "open_finding_count": 7,
+  "pending_approval_count": 7,
+  "renewals_next_90d": 3,
+  "findings_by_type": [
+    {
+      "type": "unused_licence",
+      "count": 1,
+      "est_saving_kes": 4736880.0,
+      "amount_at_issue_kes": 4736880.0
+    },
+    {
+      "type": "vendor_overlap",
+      "count": 1,
+      "est_saving_kes": 2229120.0,
+      "amount_at_issue_kes": 6966000.0
+    },
+    {
+      "type": "duplicate_invoice",
+      "count": 1,
+      "est_saving_kes": 1450000.0,
+      "amount_at_issue_kes": 1450000.0
+    },
+    {
+      "type": "overbilling",
+      "count": 1,
+      "est_saving_kes": 928800.0,
+      "amount_at_issue_kes": 928800.0
+    },
+    {
+      "type": "duplicate_subscription",
+      "count": 1,
+      "est_saving_kes": 745749.0,
+      "amount_at_issue_kes": 1597536.0
+    },
+    {
+      "type": "anomaly",
+      "count": 1,
+      "est_saving_kes": 0.0,
+      "amount_at_issue_kes": 5285158.38
+    },
+    {
+      "type": "renewal_due",
+      "count": 1,
+      "est_saving_kes": 0.0,
+      "amount_at_issue_kes": 6966000.0
+    }
+  ],
+  "spend_by_month": [
+    {
+      "month": "2025-12",
+      "amount_kes": 42285315.19
+    },
+    {
+      "month": "2026-01",
+      "amount_kes": 30004474.73
+    },
+    {
+      "month": "2026-02",
+      "amount_kes": 29377806.01
+    },
+    {
+      "month": "2026-03",
+      "amount_kes": 32471665.09
+    },
+    {
+      "month": "2026-04",
+      "amount_kes": 29795725.03
+    },
+    {
+      "month": "2026-05",
+      "amount_kes": 32489736.82
+    },
+    {
+      "month": "2026-06",
+      "amount_kes": 29941899.34
+    },
+    {
+      "month": "2026-07",
+      "amount_kes": 51011164.62
+    },
+    {
+      "month": "2026-08",
+      "amount_kes": 31569685.72
+    },
+    {
+      "month": "2026-09",
+      "amount_kes": 35147077.82
+    },
+    {
+      "month": "2026-10",
+      "amount_kes": 56671440.44
+    },
+    {
+      "month": "2026-11",
+      "amount_kes": 30127218.44
+    }
+  ],
+  "spend_by_category": [
+    {
+      "category": "software",
+      "amount_kes": 209386976.0
+    },
+    {
+      "category": "connectivity",
+      "amount_kes": 75688000.0
+    },
+    {
+      "category": "cloud",
+      "amount_kes": 73938833.25
+    },
+    {
+      "category": "security_services",
+      "amount_kes": 49200000.0
+    },
+    {
+      "category": "security",
+      "amount_kes": 12384000.0
+    },
+    {
+      "category": "consulting",
+      "amount_kes": 7800000.0
+    },
+    {
+      "category": "office_supplies",
+      "amount_kes": 2495400.0
+    }
+  ]
+}

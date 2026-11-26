@@ -1,8 +1,12 @@
 "use client"
 
-import { Calendar03Icon, Invoice01Icon, MoneySavingJarIcon, Store01Icon } from "@hugeicons/core-free-icons"
+import * as React from "react"
+import { HugeiconsIcon } from "@hugeicons/react"
+import { Add01Icon, Calendar03Icon, Invoice01Icon, MoneySavingJarIcon, Store01Icon } from "@hugeicons/core-free-icons"
 
+import { AddVendorDialog } from "@/components/forms/add-vendor-dialog"
 import { DataLabel, METRIC_GRID, MetricCard, PageHeader } from "@/components/shared/dashboard-ui"
+import { Button } from "@/components/ui/button"
 import { money, perMonth, perYear } from "@/lib/format"
 import { upcomingRenewals, vendorSummary, sparkSeries } from "@/lib/store/selectors"
 import { useSpend } from "@/lib/store/spend-store"
@@ -12,6 +16,7 @@ import { VendorDirectory } from "./vendor-directory"
 
 export function VendorsView() {
   const { state } = useSpend()
+  const [addOpen, setAddOpen] = React.useState(false)
   const summary = vendorSummary(state)
   const renewals = upcomingRenewals(state, 90)
   const renewalValue = renewals.reduce((s, r) => s + r.annual, 0)
@@ -22,8 +27,17 @@ export function VendorsView() {
       <PageHeader
         title="Vendors"
         description="SaaS, AI and enterprise software contracts, license utilization and renewals."
-        actions={<DataLabel kind="simulated" />}
+        actions={
+          <div className="flex items-center gap-2">
+            <DataLabel kind="simulated" />
+            <Button size="sm" onClick={() => setAddOpen(true)}>
+              <HugeiconsIcon icon={Add01Icon} strokeWidth={2} data-icon="inline-start" />
+              Add vendor
+            </Button>
+          </div>
+        }
       />
+      <AddVendorDialog open={addOpen} onOpenChange={setAddOpen} />
 
       <div className={METRIC_GRID}>
         <MetricCard

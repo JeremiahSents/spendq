@@ -1,0 +1,222 @@
+[
+  {
+    "id": "ven_microsoft",
+    "name": "Microsoft Kenya Ltd",
+    "canonical_vendor_id": "ven_microsoft",
+    "canonical_name": "Microsoft",
+    "category": "software",
+    "country": "KE",
+    "spend_12m_kes": 113685120.0,
+    "contract_count": 3,
+    "open_finding_count": 1
+  },
+  {
+    "id": "ven_g4s",
+    "name": "G4S Kenya Ltd",
+    "canonical_vendor_id": "ven_g4s",
+    "canonical_name": "G4S",
+    "category": "security_services",
+    "country": "KE",
+    "spend_12m_kes": 49200000.0,
+    "contract_count": 1,
+    "open_finding_count": 0
+  },
+  {
+    "id": "ven_microsoft_ie",
+    "name": "Microsoft Ireland Operations Ltd",
+    "canonical_vendor_id": "ven_microsoft",
+    "canonical_name": "Microsoft",
+    "category": "cloud",
+    "country": "IE",
+    "spend_12m_kes": 37175483.16,
+    "contract_count": 1,
+    "open_finding_count": 0
+  },
+  {
+    "id": "ven_aws",
+    "name": "Amazon Web Services EMEA SARL",
+    "canonical_vendor_id": "ven_aws",
+    "canonical_name": "Amazon Web Services",
+    "category": "cloud",
+    "country": "LU",
+    "spend_12m_kes": 36763350.09,
+    "contract_count": 1,
+    "open_finding_count": 1
+  },
+  {
+    "id": "ven_safaricom",
+    "name": "Safaricom PLC",
+    "canonical_vendor_id": "ven_safaricom",
+    "canonical_name": "Safaricom",
+    "category": "connectivity",
+    "country": "KE",
+    "spend_12m_kes": 28200000.0,
+    "contract_count": 1,
+    "open_finding_count": 0
+  },
+  {
+    "id": "ven_servicenow",
+    "name": "ServiceNow Nederland BV",
+    "canonical_vendor_id": "ven_servicenow",
+    "canonical_name": "ServiceNow",
+    "category": "software",
+    "country": "NL",
+    "spend_12m_kes": 27090000.0,
+    "contract_count": 1,
+    "open_finding_count": 0
+  },
+  {
+    "id": "ven_salesforce",
+    "name": "Salesforce.com EMEA Ltd",
+    "canonical_vendor_id": "ven_salesforce",
+    "canonical_name": "Salesforce.com",
+    "category": "software",
+    "country": "IE",
+    "spend_12m_kes": 21362400.0,
+    "contract_count": 1,
+    "open_finding_count": 1
+  },
+  {
+    "id": "ven_liquid",
+    "name": "Liquid Intelligent Technologies Kenya Ltd",
+    "canonical_vendor_id": "ven_liquid",
+    "canonical_name": "Liquid Intelligent Technologies",
+    "category": "connectivity",
+    "country": "KE",
+    "spend_12m_kes": 18850000.0,
+    "contract_count": 1,
+    "open_finding_count": 1
+  },
+  {
+    "id": "ven_oracle",
+    "name": "Oracle East Central Africa Ltd",
+    "canonical_vendor_id": "ven_oracle",
+    "canonical_name": "Oracle",
+    "category": "software",
+    "country": "KE",
+    "spend_12m_kes": 18500000.0,
+    "contract_count": 1,
+    "open_finding_count": 0
+  },
+  {
+    "id": "ven_mtn_ug",
+    "name": "MTN Uganda Ltd",
+    "canonical_vendor_id": "ven_mtn_ug",
+    "canonical_name": "MTN Uganda",
+    "category": "connectivity",
+    "country": "UG",
+    "spend_12m_kes": 15170400.0,
+    "contract_count": 1,
+    "open_finding_count": 0
+  },
+  {
+    "id": "ven_vodacom_tz",
+    "name": "Vodacom Tanzania PLC",
+    "canonical_vendor_id": "ven_vodacom_tz",
+    "canonical_name": "Vodacom Tanzania",
+    "category": "connectivity",
+    "country": "TZ",
+    "spend_12m_kes": 13467600.0,
+    "contract_count": 1,
+    "open_finding_count": 0
+  },
+  {
+    "id": "ven_crowdstrike",
+    "name": "CrowdStrike UK Ltd",
+    "canonical_vendor_id": "ven_crowdstrike",
+    "canonical_name": "CrowdStrike",
+    "category": "security",
+    "country": "GB",
+    "spend_12m_kes": 12384000.0,
+    "contract_count": 1,
+    "open_finding_count": 0
+  },
+  {
+    "id": "ven_deloitte",
+    "name": "Deloitte & Touche LLP",
+    "canonical_vendor_id": "ven_deloitte",
+    "canonical_name": "Deloitte & Touche",
+    "category": "consulting",
+    "country": "KE",
+    "spend_12m_kes": 7800000.0,
+    "contract_count": 1,
+    "open_finding_count": 0
+  },
+  {
+    "id": "ven_zoom",
+    "name": "Zoom Video Communications Inc",
+    "canonical_vendor_id": "ven_zoom",
+    "canonical_name": "Zoom Video Communications",
+    "category": "software",
+    "country": "US",
+    "spend_12m_kes": 6966000.0,
+    "contract_count": 1,
+    "open_finding_count": 3
+  },
+  {
+    "id": "ven_datadog",
+    "name": "Datadog Inc",
+    "canonical_vendor_id": "ven_datadog",
+    "canonical_name": "Datadog",
+    "category": "software",
+    "country": "US",
+    "spend_12m_kes": 6408720.0,
+    "contract_count": 1,
+    "open_finding_count": 0
+  },
+  {
+    "id": "ven_adobe",
+    "name": "Adobe Systems Software Ireland Ltd",
+    "canonical_vendor_id": "ven_adobe",
+    "canonical_name": "Adobe",
+    "category": "software",
+    "country": "IE",
+    "spend_12m_kes": 5263200.0,
+    "contract_count": 1,
+    "open_finding_count": 0
+  },
+  {
+    "id": "ven_atlassian_1",
+    "name": "Atlassian Pty Ltd",
+    "canonical_vendor_id": "ven_atlassian_1",
+    "canonical_name": "Atlassian",
+    "category": "software",
+    "country": "AU",
+    "spend_12m_kes": 4798800.0,
+    "contract_count": 1,
+    "open_finding_count": 1
+  },
+  {
+    "id": "ven_docusign",
+    "name": "DocuSign International (EMEA) Ltd",
+    "canonical_vendor_id": "ven_docusign",
+    "canonical_name": "DocuSign",
+    "category": "software",
+    "country": "IE",
+    "spend_12m_kes": 3715200.0,
+    "contract_count": 1,
+    "open_finding_count": 0
+  },
+  {
+    "id": "ven_tbc",
+    "name": "Text Book Centre Ltd",
+    "canonical_vendor_id": "ven_tbc",
+    "canonical_name": "Text Book Centre",
+    "category": "office_supplies",
+    "country": "KE",
+    "spend_12m_kes": 2495400.0,
+    "contract_count": 0,
+    "open_finding_count": 0
+  },
+  {
+    "id": "ven_atlassian_2",
+    "name": "ATLASSIAN PTY. LIMITED",
+    "canonical_vendor_id": "ven_atlassian_1",
+    "canonical_name": "Atlassian",
+    "category": "software",
+    "country": "AU",
+    "spend_12m_kes": 1597536.0,
+    "contract_count": 1,
+    "open_finding_count": 1
+  }
+]

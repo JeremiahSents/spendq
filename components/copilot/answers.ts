@@ -3,7 +3,8 @@
  * state at the moment a question is asked, through the shared selectors, so the
  * Copilot always agrees with the dashboard.
  */
-import type { BrandKey } from "@/lib/data/types"
+import { oneTimeAmount, savingKind } from "@/components/recommendations/filters"
+import type { BrandKey, RecCategory, RecStatus } from "@/lib/data/types"
 import { money, pct, perMonth, perYear } from "@/lib/format"
 import {
   licenseUtilization,
@@ -19,7 +20,7 @@ import {
 } from "@/lib/store/selectors"
 import type { DrawerTarget, SpendState } from "@/lib/store/spend-store"
 
-export type Intent = "waste" | "aws" | "seats" | "procurement" | "alternatives" | "annual"
+export type Intent = "waste" | "aws" | "seats" | "procurement" | "alternatives" | "annual" | "billing"
 
 export type AnswerTarget = { type: "drawer"; drawer: NonNullable<DrawerTarget> } | { type: "link"; href: string }
 
@@ -52,6 +53,8 @@ export const QUICK_PROMPTS: { intent: Intent; prompt: string }[] = [
 ]
 
 const RULES: { intent: Intent; pattern: RegExp }[] = [
+  // Before "seats": "duplicate subscription" must not route to unused seats.
+  { intent: "billing", pattern: /overbill|overcharg|invoice|duplicate|double.?bill|billed twice|contract|credit note|refund/ },
   { intent: "alternatives", pattern: /alternative|cheaper|switch|replace|competitor/ },
   { intent: "seats", pattern: /seat|licen[cs]e|unused|subscription|saas|inactive/ },
   { intent: "aws", pattern: /\baws\b|amazon|ec2|\brds\b|\bs3\b/ },
@@ -141,6 +144,8 @@ function seats(s: SpendState): Answer {
     .filter((v) => unusedUnits(v) > 0)
     .map((v) => ({ v, unused: unusedUnits(v), waste: unusedUnits(v) * v.unitPrice }))
     .sort((a, b) => b.waste - a.waste)
+  // Top five by cost, plus every contract the SpendQ engine flagged (Zoom's 204 idle seats).
+  const shown = rows.filter((r, i) => i < 5 || r.v.id.startsWith("be-"))
   if (rows.length === 0) {
     return {
       headline: "Every subscription is fully assigned. No unused seats right now.",
@@ -152,7 +157,7 @@ function seats(s: SpendState): Answer {
   const units = sum(rows, (r) => r.unused)
   return {
     headline: `${rows.length} subscriptions carry ${units.toLocaleString("en-US")} unused seats or hosts, costing ${perMonth(total)} (${perYear(total * 12)}).`,
-    items: rows.slice(0, 5).map(({ v, unused, waste }) => {
+    items: shown.map(({ v, unused, waste }) => {
       const rec = recommendationFor(s, v.id)
       const action = rec ? ` · action ${rec.status.toLowerCase()}` : ""
       return {
@@ -281,6 +286,50 @@ function annual(s: SpendState): Answer {
   }
 }
 
+const BILLING_CATEGORIES: RecCategory[] = ["Overbilling", "Duplicate invoice", "Duplicate subscription"]
+const STATUS_ORDER: Record<RecStatus, number> = { Pending: 0, Approved: 1, Dismissed: 2 }
+
+/** Contract and invoice errors the SpendQ engine found: overbilling, double-billing, duplicate contracts. */
+function billing(s: SpendState): Answer {
+  const recs = s.recommendations
+    .filter((r) => BILLING_CATEGORIES.includes(r.category))
+    .sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status] || recSavings(b) - recSavings(a))
+  if (recs.length === 0) {
+    return {
+      headline: "No overbilling, duplicate invoices or duplicate subscriptions have been found against your contracts.",
+      items: [],
+      actions: [{ label: "Open Recommendations", href: "/recommendations" }],
+    }
+  }
+  const open = recs.filter((r) => r.status === "Pending")
+  const oneTime = sum(open.filter((r) => savingKind(r) === "one-time"), oneTimeAmount)
+  const recurring = sum(open.filter((r) => savingKind(r) !== "one-time"), recSavings)
+  const parts = [
+    oneTime > 0 ? `${money(oneTime)} recoverable as one-time credits or refunds` : null,
+    recurring > 0 ? `${perYear(recurring * 12)} from merging duplicate contracts` : null,
+  ].filter(Boolean)
+  return {
+    headline:
+      open.length > 0
+        ? `The SpendQ engine found ${recs.length} contract and invoice issue${recs.length === 1 ? "" : "s"}, ${open.length} still open${parts.length > 0 ? `: ${parts.join(", plus ")}` : ""}.`
+        : `All ${recs.length} contract and invoice issues the SpendQ engine found have been decided.`,
+    items: recs.map((r) => {
+      const oneOff = savingKind(r) === "one-time"
+      const status = r.status === "Pending" ? "open" : r.status.toLowerCase()
+      return {
+        key: r.id,
+        brand: r.brand,
+        name: r.title,
+        detail: `${r.category} · ${r.department} · ${status}`,
+        figure: oneOff ? `${money(oneTimeAmount(r))} one-time` : perYear(recSavings(r) * 12),
+        subFigure: oneOff ? "credit or refund" : perMonth(recSavings(r)),
+        target: recTarget(r.id),
+      }
+    }),
+    actions: [{ label: "Open Recommendations", href: "/recommendations" }],
+  }
+}
+
 const HANDLERS: Record<Intent, (s: SpendState) => Answer> = {
   waste,
   aws,
@@ -288,13 +337,14 @@ const HANDLERS: Record<Intent, (s: SpendState) => Answer> = {
   procurement,
   alternatives,
   annual,
+  billing,
 }
 
 export function answer(intent: Intent | null, s: SpendState): Answer {
   if (intent) return HANDLERS[intent](s)
   return {
     headline:
-      "I can answer questions about waste, your AWS bill, unused seats, pending procurement requests, cheaper vendors and this year's savings. Try one of these:",
+      "I can answer questions about waste, your AWS bill, unused seats, overbilling and duplicate invoices, pending procurement requests, cheaper vendors and this year's savings. Try one of these:",
     items: [],
     actions: [],
     suggestions: QUICK_PROMPTS.map((p) => p.prompt),

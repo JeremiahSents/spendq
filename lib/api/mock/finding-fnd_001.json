@@ -1,0 +1,95 @@
+{
+  "id": "fnd_001",
+  "type": "unused_licence",
+  "title": "204 of 300 Zoom seats unused in the last 90 days",
+  "explanation": "Marketing pays for 300 Zoom Business seats. Only 96 people signed in in the last 90 days, and 41 assigned users never signed in. Cutting to active users saves KES 4,736,880 a year.",
+  "amount_at_issue_kes": 4736880.0,
+  "est_saving_kes": 4736880.0,
+  "saving_basis": "annual",
+  "confidence": 0.9,
+  "status": "open",
+  "department_id": "dep_marketing_ke",
+  "department_name": "Marketing",
+  "vendor_ids": [
+    "ven_zoom"
+  ],
+  "vendor_names": [
+    "Zoom Video Communications"
+  ],
+  "contract_ids": [
+    "con_zoom_mkt"
+  ],
+  "invoice_ids": [],
+  "licence_ids": [
+    "lic_zoom_mkt"
+  ],
+  "related_finding_ids": [
+    "fnd_002",
+    "fnd_007"
+  ],
+  "evidence": {
+    "seats_paid": 300,
+    "seats_assigned": 262,
+    "seats_active_90d": 96,
+    "never_signed_in": 41
+  },
+  "detected_at": "2026-11-30T05:00:00Z",
+  "contracts": [
+    {
+      "id": "con_zoom_mkt",
+      "vendor_id": "ven_zoom",
+      "vendor_name": "Zoom Video Communications",
+      "department_id": "dep_marketing_ke",
+      "department_name": "Marketing",
+      "title": "Zoom Business licences",
+      "service_category": "video_conferencing",
+      "capabilities": [
+        "video_conferencing",
+        "webinars"
+      ],
+      "billing_cycle": "monthly",
+      "unit": "seat/month",
+      "unit_price": 15.0,
+      "currency": "USD",
+      "quantity": 300,
+      "start_date": "2025-01-10",
+      "end_date": "2027-01-09",
+      "auto_renew": true,
+      "notice_days": 30,
+      "notice_deadline": "2026-12-10",
+      "days_to_end": 40,
+      "annual_value_kes": 6966000.0,
+      "pdf_path": "contracts/con_zoom_mkt.pdf"
+    }
+  ],
+  "invoices": [],
+  "licences": [
+    {
+      "id": "lic_zoom_mkt",
+      "contract_id": "con_zoom_mkt",
+      "product_name": "Zoom Business",
+      "seats_paid": 300,
+      "seats_assigned": 262,
+      "seats_active_90d": 96,
+      "never_signed_in": 41,
+      "utilisation": 0.32
+    }
+  ],
+  "actions": [
+    {
+      "id": "act_001",
+      "finding_id": "fnd_001",
+      "finding_title": "204 of 300 Zoom seats unused in the last 90 days",
+      "finding_type": "unused_licence",
+      "kind": "reclaim_seats",
+      "description": "Reduce to 96 seats at renewal and remove inactive users now",
+      "est_saving_kes": 4736880.0,
+      "approval_tier": "cfo",
+      "status": "proposed",
+      "draft": null,
+      "approver": null,
+      "decided_at": null,
+      "realised_saving_kes": 0.0
+    }
+  ]
+}

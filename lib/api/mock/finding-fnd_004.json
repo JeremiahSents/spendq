@@ -1,0 +1,185 @@
+{
+  "id": "fnd_004",
+  "type": "overbilling",
+  "title": "Salesforce.com billed above contract rate for 6 months",
+  "explanation": "The contract fixes Sales Cloud Enterprise at USD 165 per seat per month. Since June 2026, invoices charge USD 180. The overcharge so far is USD 7,200 (KES 928,800), recoverable as a credit note.",
+  "amount_at_issue_kes": 928800.0,
+  "est_saving_kes": 928800.0,
+  "saving_basis": "one_time",
+  "confidence": 0.95,
+  "status": "open",
+  "department_id": "dep_corporate_ke",
+  "department_name": "Corporate Banking",
+  "vendor_ids": [
+    "ven_salesforce"
+  ],
+  "vendor_names": [
+    "Salesforce.com"
+  ],
+  "contract_ids": [
+    "con_sfdc"
+  ],
+  "invoice_ids": [
+    "inv_0111",
+    "inv_0128",
+    "inv_0146",
+    "inv_0164",
+    "inv_0181",
+    "inv_0199"
+  ],
+  "licence_ids": [],
+  "related_finding_ids": [],
+  "evidence": {
+    "contract_unit_price": 165.0,
+    "invoiced_unit_price": 180.0,
+    "currency": "USD",
+    "months_affected": 6,
+    "overcharge": 7200.0,
+    "contract_clause": "Unit price is fixed at USD 165 per user per month for the initial term."
+  },
+  "detected_at": "2026-11-30T05:00:00Z",
+  "contracts": [
+    {
+      "id": "con_sfdc",
+      "vendor_id": "ven_salesforce",
+      "vendor_name": "Salesforce.com",
+      "department_id": "dep_corporate_ke",
+      "department_name": "Corporate Banking",
+      "title": "Sales Cloud Enterprise",
+      "service_category": "crm",
+      "capabilities": [
+        "crm",
+        "pipeline"
+      ],
+      "billing_cycle": "monthly",
+      "unit": "seat/month",
+      "unit_price": 165.0,
+      "currency": "USD",
+      "quantity": 80,
+      "start_date": "2025-06-01",
+      "end_date": "2028-05-31",
+      "auto_renew": false,
+      "notice_days": 90,
+      "notice_deadline": "2028-03-02",
+      "days_to_end": 548,
+      "annual_value_kes": 20433600.0,
+      "pdf_path": "contracts/con_sfdc.pdf"
+    }
+  ],
+  "invoices": [
+    {
+      "id": "inv_0111",
+      "invoice_number": "SALE-2606-1132",
+      "vendor_id": "ven_salesforce",
+      "vendor_name": "Salesforce.com",
+      "contract_id": "con_sfdc",
+      "department_id": "dep_corporate_ke",
+      "invoice_date": "2026-06-05",
+      "description": "Sales Cloud Enterprise, June 2026",
+      "quantity": 80.0,
+      "unit_price": 180.0,
+      "amount": 14400.0,
+      "currency": "USD",
+      "amount_kes": 1857600.0,
+      "etims_number": null
+    },
+    {
+      "id": "inv_0128",
+      "invoice_number": "SALE-2607-1153",
+      "vendor_id": "ven_salesforce",
+      "vendor_name": "Salesforce.com",
+      "contract_id": "con_sfdc",
+      "department_id": "dep_corporate_ke",
+      "invoice_date": "2026-07-05",
+      "description": "Sales Cloud Enterprise, July 2026",
+      "quantity": 80.0,
+      "unit_price": 180.0,
+      "amount": 14400.0,
+      "currency": "USD",
+      "amount_kes": 1857600.0,
+      "etims_number": null
+    },
+    {
+      "id": "inv_0146",
+      "invoice_number": "SALE-2608-1174",
+      "vendor_id": "ven_salesforce",
+      "vendor_name": "Salesforce.com",
+      "contract_id": "con_sfdc",
+      "department_id": "dep_corporate_ke",
+      "invoice_date": "2026-08-05",
+      "description": "Sales Cloud Enterprise, August 2026",
+      "quantity": 80.0,
+      "unit_price": 180.0,
+      "amount": 14400.0,
+      "currency": "USD",
+      "amount_kes": 1857600.0,
+      "etims_number": null
+    },
+    {
+      "id": "inv_0164",
+      "invoice_number": "SALE-2609-1195",
+      "vendor_id": "ven_salesforce",
+      "vendor_name": "Salesforce.com",
+      "contract_id": "con_sfdc",
+      "department_id": "dep_corporate_ke",
+      "invoice_date": "2026-09-05",
+      "description": "Sales Cloud Enterprise, September 2026",
+      "quantity": 80.0,
+      "unit_price": 180.0,
+      "amount": 14400.0,
+      "currency": "USD",
+      "amount_kes": 1857600.0,
+      "etims_number": null
+    },
+    {
+      "id": "inv_0181",
+      "invoice_number": "SALE-2610-1215",
+      "vendor_id": "ven_salesforce",
+      "vendor_name": "Salesforce.com",
+      "contract_id": "con_sfdc",
+      "department_id": "dep_corporate_ke",
+      "invoice_date": "2026-10-05",
+      "description": "Sales Cloud Enterprise, October 2026",
+      "quantity": 80.0,
+      "unit_price": 180.0,
+      "amount": 14400.0,
+      "currency": "USD",
+      "amount_kes": 1857600.0,
+      "etims_number": null
+    },
+    {
+      "id": "inv_0199",
+      "invoice_number": "SALE-2611-1235",
+      "vendor_id": "ven_salesforce",
+      "vendor_name": "Salesforce.com",
+      "contract_id": "con_sfdc",
+      "department_id": "dep_corporate_ke",
+      "invoice_date": "2026-11-05",
+      "description": "Sales Cloud Enterprise, November 2026",
+      "quantity": 80.0,
+      "unit_price": 180.0,
+      "amount": 14400.0,
+      "currency": "USD",
+      "amount_kes": 1857600.0,
+      "etims_number": null
+    }
+  ],
+  "licences": [],
+  "actions": [
+    {
+      "id": "act_004",
+      "finding_id": "fnd_004",
+      "finding_title": "Salesforce.com billed above contract rate for 6 months",
+      "finding_type": "overbilling",
+      "kind": "dispute_invoice",
+      "description": "Request a credit note and correct future invoices",
+      "est_saving_kes": 928800.0,
+      "approval_tier": "manager",
+      "status": "proposed",
+      "draft": "Subject: Invoice dispute \u2013 Sales Cloud Enterprise unit price\n\nHello,\n\nOur contract fixes the unit price at USD 165.0. Recent invoices charge USD 180.0. Please issue a credit note for USD 7,200 and correct future invoices.\n\nRegards,\nAccounts Payable",
+      "approver": null,
+      "decided_at": null,
+      "realised_saving_kes": 0.0
+    }
+  ]
+}

@@ -2,27 +2,30 @@
 
 import type { ReactNode } from "react"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { ArrowRight01Icon, CheckmarkCircle02Icon, LinkSquare02Icon, UndoIcon } from "@hugeicons/core-free-icons"
+import {
+  Alert02Icon,
+  ArrowRight01Icon,
+  Cancel01Icon,
+  CheckmarkCircle02Icon,
+  LinkSquare02Icon,
+  Tick02Icon,
+  UndoIcon,
+} from "@hugeicons/core-free-icons"
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
 
+import { EngineTag } from "@/components/recommendations/engine-tag"
+import { approveLabel, oneTimeAmount, savingKind, zeroSavingLabel } from "@/components/recommendations/filters"
 import { BrandLogo } from "@/components/shared/brand-logo"
 import { DataLabel, PillarBadge, RiskBadge, ToneBadge } from "@/components/shared/dashboard-ui"
 import { Button } from "@/components/ui/button"
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
 import { SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { DataTable, type SpendColumn } from "@/components/shared/data-table"
-import { DaysBadge, LicenseBar, VendorStatusBadge } from "@/components/vendors/vendor-status"
-import type { Vendor, VendorAlternative } from "@/lib/data/types"
+import { DaysBadge, LicenseBar, VendorStatusBadge, isUsageBased, vendorRecs } from "@/components/vendors/vendor-status"
+import type { Recommendation, Vendor, VendorAlternative } from "@/lib/data/types"
 import { money, perMonth, perYear, shortDate } from "@/lib/format"
 import { PILLAR_BY_CATEGORY } from "@/lib/store/build"
-import {
-  daysUntil,
-  licenseUtilization,
-  recSavings,
-  recommendationFor,
-  unusedUnits,
-  vendorMonthly,
-} from "@/lib/store/selectors"
+import { daysUntil, licenseUtilization, recSavings, sum, unusedUnits, vendorMonthly } from "@/lib/store/selectors"
 import { useSpend } from "@/lib/store/spend-store"
 import { useRecActions } from "@/lib/store/use-rec-actions"
 import { cn } from "@/lib/utils"
@@ -56,9 +59,15 @@ export function VendorDrawer({ id }: { id: string }) {
     )
   }
 
-  const rec = recommendationFor(state, vendor.id)
+  const recs = vendorRecs(state, vendor.id)
+  const primary = recs[0]
+  const pending = recs.filter((r) => r.status === "Pending")
+  const pendingMonthly = sum(pending, recSavings)
   const monthly = vendorMonthly(vendor)
   const unit = vendor.unit === "seats" ? "seat" : "host"
+  // Contracts from the SpendQ backend lead with their renewal and notice terms.
+  const backend = vendor.id.startsWith("be-")
+  const usage = isUsageBased(vendor)
 
   return (
     <>
@@ -72,7 +81,8 @@ export function VendorDrawer({ id }: { id: string }) {
             </SheetDescription>
             <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
               <ToneBadge tone="neutral">{vendor.department}</ToneBadge>
-              <VendorStatusBadge rec={rec} />
+              <VendorStatusBadge rec={primary} more={recs.length - 1} />
+              {backend ? <EngineTag /> : null}
               <DataLabel kind="simulated" />
             </div>
           </div>
@@ -80,6 +90,8 @@ export function VendorDrawer({ id }: { id: string }) {
       </SheetHeader>
 
       <div className="flex-1 space-y-5 overflow-y-auto px-4 py-4">
+        {backend ? <ContractDetails vendor={vendor} monthly={monthly} prominent /> : null}
+
         <Section title="Overview">
           <p className="text-sm leading-relaxed text-muted-foreground">{vendor.description}</p>
           <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
@@ -88,7 +100,7 @@ export function VendorDrawer({ id }: { id: string }) {
           </dl>
         </Section>
 
-        <ContractDetails vendor={vendor} monthly={monthly} />
+        {backend ? null : <ContractDetails vendor={vendor} monthly={monthly} />}
 
         <Section title="Historical monthly spend" aside={<span className="text-[11px] text-muted-foreground">Jan – Nov 2026</span>}>
           <ChartContainer config={spendConfig} className="aspect-auto h-40 w-full">
@@ -120,106 +132,251 @@ export function VendorDrawer({ id }: { id: string }) {
           </ChartContainer>
         </Section>
 
-        <LicenseBreakdown vendor={vendor} unit={unit} />
+        {usage ? null : <LicenseBreakdown vendor={vendor} unit={unit} />}
 
-        <Alternatives vendor={vendor} monthly={monthly} />
+        {vendor.alternatives.length > 0 ? <Alternatives vendor={vendor} monthly={monthly} /> : null}
 
-        <Section title="Recommendation">
-          {rec && vendor.recommendation ? (
-            <div
-              className={cn(
-                "rounded-lg border p-3",
-                rec.status === "Pending" && "border-amber-500/30 bg-amber-500/5",
-                rec.status === "Approved" && "border-emerald-500/30 bg-emerald-500/5",
-              )}
-            >
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="text-sm font-medium">{rec.title}</p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">{vendor.recommendation.action}</p>
-                </div>
-                <div className="flex flex-wrap gap-1">
-                  <RiskBadge risk={rec.risk} />
-                  <PillarBadge pillar={PILLAR_BY_CATEGORY[rec.category]} />
-                </div>
-              </div>
-              <p className="mt-2 text-xs leading-relaxed">{vendor.recommendation.detail}</p>
-              <div className="mt-3 grid grid-cols-3 gap-2 border-t pt-3">
-                <Stat label="Current → recommended">
-                  <span className="text-muted-foreground">{money(rec.currentMonthly)}</span>
-                  <span className="text-muted-foreground"> → </span>
-                  {perMonth(rec.recommendedMonthly)}
-                </Stat>
-                <Stat label="Monthly savings" positive>
-                  {perMonth(recSavings(rec))}
-                </Stat>
-                <Stat label="Annual savings" positive>
-                  {perYear(recSavings(rec) * 12)}
-                </Stat>
-              </div>
-              <div className="mt-2">
-                <DataLabel kind="projected" />
-              </div>
+        <Section
+          title={recs.length > 1 ? `Recommendations · ${recs.length}` : "Recommendation"}
+          aside={recs.length > 1 ? <DataLabel kind="projected" /> : null}
+        >
+          {recs.length > 0 ? (
+            <div className="space-y-2">
+              {recs.map((r) => (
+                <VendorRecCard
+                  key={r.id}
+                  rec={r}
+                  vendor={vendor}
+                  onApprove={() => approve(r.id)}
+                  onDismiss={() => dismiss(r.id)}
+                  onUndo={() => resetRecommendation(r.id)}
+                  onOpen={() => openDrawer({ kind: "recommendation", id: r.id })}
+                />
+              ))}
             </div>
           ) : (
             <div className="flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3 text-sm text-emerald-700 dark:text-emerald-400">
               <HugeiconsIcon icon={CheckmarkCircle02Icon} size={16} strokeWidth={1.8} />
-              No action needed — utilization healthy
+              {usage ? "No action needed — billing within the normal range" : "No action needed — utilization healthy"}
             </div>
           )}
         </Section>
       </div>
 
       <SheetFooter className="flex-row flex-wrap items-center gap-2 border-t">
-        {!rec ? (
+        {recs.length === 0 ? (
           <p className="text-xs text-muted-foreground">
-            {licenseUtilization(vendor)}% of {vendor.unit} active. SpendIQ will flag this vendor if utilization drops.
+            {usage
+              ? "Usage-based contract. SpendIQ will flag this vendor if billing spikes or drifts from the contract."
+              : `${licenseUtilization(vendor)}% of ${vendor.unit} active. SpendIQ will flag this vendor if utilization drops.`}
           </p>
-        ) : rec.status === "Pending" ? (
-          <>
-            <Button onClick={() => approve(rec.id)}>
-              Approve · <span className="font-mono tabular-nums">{perMonth(recSavings(rec))}</span>
-            </Button>
-            <Button variant="outline" onClick={() => dismiss(rec.id)}>
-              Dismiss
-            </Button>
-          </>
         ) : (
           <>
-            <div className="flex items-center gap-2 text-sm">
-              {rec.status === "Approved" ? (
-                <ToneBadge tone="positive">Action approved</ToneBadge>
+            <p className="text-xs text-muted-foreground">
+              {pending.length > 0 ? (
+                <>
+                  {pending.length} of {recs.length} pending
+                  {pendingMonthly > 0 ? (
+                    <>
+                      {" · "}
+                      <span className="font-mono text-emerald-700 tabular-nums dark:text-emerald-400">
+                        {perMonth(pendingMonthly)}
+                      </span>{" "}
+                      at stake
+                    </>
+                  ) : null}
+                </>
               ) : (
-                <ToneBadge tone="neutral">Dismissed</ToneBadge>
+                `All ${recs.length === 1 ? "" : `${recs.length} `}decided`
               )}
-              {rec.status === "Approved" ? (
-                <span className="font-mono text-xs text-emerald-700 tabular-nums dark:text-emerald-400">
-                  {perMonth(recSavings(rec))} projected
-                </span>
-              ) : null}
-            </div>
-            <Button variant="outline" size="sm" onClick={() => resetRecommendation(rec.id)}>
-              <HugeiconsIcon icon={UndoIcon} strokeWidth={2} data-icon="inline-start" />
-              {rec.status === "Approved" ? "Undo" : "Restore"}
+            </p>
+            <Button variant="ghost" className="ml-auto" onClick={() => openDrawer({ kind: "recommendation", id: primary.id })}>
+              Open in Recommendations
+              <HugeiconsIcon icon={LinkSquare02Icon} strokeWidth={2} data-icon="inline-end" />
             </Button>
           </>
         )}
-        {rec ? (
-          <Button variant="ghost" className="ml-auto" onClick={() => openDrawer({ kind: "recommendation", id: rec.id })}>
-            Open in Recommendations
-            <HugeiconsIcon icon={LinkSquare02Icon} strokeWidth={2} data-icon="inline-end" />
-          </Button>
-        ) : null}
       </SheetFooter>
     </>
   )
 }
 
-function ContractDetails({ vendor, monthly }: { vendor: Vendor; monthly: number }) {
+function VendorRecCard({
+  rec,
+  vendor,
+  onApprove,
+  onDismiss,
+  onUndo,
+  onOpen,
+}: {
+  rec: Recommendation
+  vendor: Vendor
+  onApprove: () => void
+  onDismiss: () => void
+  onUndo: () => void
+  onOpen: () => void
+}) {
+  // Seed vendors carry richer copy for their own recommendation; backend ones use the finding.
+  const copy = vendor.recommendation?.title === rec.title ? vendor.recommendation : undefined
+  const action = copy?.action ?? rec.steps[0]
+  const detail = copy?.detail ?? rec.problem
+  const kind = savingKind(rec)
+  const saving = recSavings(rec)
+
+  return (
+    <div
+      className={cn(
+        "rounded-lg border p-3",
+        rec.status === "Pending" && "border-amber-500/30 bg-amber-500/5",
+        rec.status === "Approved" && "border-emerald-500/30 bg-emerald-500/5",
+        rec.status === "Dismissed" && "opacity-70",
+      )}
+    >
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <button type="button" onClick={onOpen} className="min-w-0 flex-1 text-left hover:underline">
+          <p className="text-sm font-medium">{rec.title}</p>
+          {action ? <p className="mt-0.5 text-xs text-muted-foreground">{action}</p> : null}
+        </button>
+        <div className="flex flex-wrap gap-1">
+          <RiskBadge risk={rec.risk} />
+          <PillarBadge pillar={PILLAR_BY_CATEGORY[rec.category]} />
+        </div>
+      </div>
+      {detail ? <p className="mt-2 text-xs leading-relaxed">{detail}</p> : null}
+      <div className="mt-3 grid grid-cols-3 gap-2 border-t pt-3">
+        {kind === "none" ? (
+          <Stat label="Next step">
+            <span className={cn("font-sans", rec.category === "Renewal notice" ? "text-destructive" : "text-amber-700 dark:text-amber-400")}>
+              {zeroSavingLabel(rec)}
+            </span>
+          </Stat>
+        ) : (
+          <Stat label="Current → recommended">
+            <span className="text-muted-foreground">{money(rec.currentMonthly)}</span>
+            <span className="text-muted-foreground"> → </span>
+            {perMonth(rec.recommendedMonthly)}
+          </Stat>
+        )}
+        <Stat label={kind === "one-time" ? "Spread monthly" : "Monthly savings"} positive={kind !== "none"}>
+          {kind === "none" ? <span className="text-muted-foreground">—</span> : perMonth(saving)}
+        </Stat>
+        <Stat label={kind === "one-time" ? "One-time recovery" : "Annual savings"} positive={kind !== "none"}>
+          {kind === "none" ? (
+            <span className="text-muted-foreground">—</span>
+          ) : kind === "one-time" ? (
+            money(oneTimeAmount(rec))
+          ) : (
+            perYear(saving * 12)
+          )}
+        </Stat>
+      </div>
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        {rec.status === "Pending" ? (
+          <>
+            <Button size="sm" onClick={onApprove} aria-label={`${approveLabel(rec)} ${rec.title}`}>
+              <HugeiconsIcon icon={Tick02Icon} strokeWidth={2} data-icon="inline-start" />
+              {approveLabel(rec)}
+              {kind !== "none" ? <span className="font-mono tabular-nums">· {perMonth(saving)}</span> : null}
+            </Button>
+            <Button size="sm" variant="outline" onClick={onDismiss} aria-label={`Dismiss ${rec.title}`}>
+              <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} data-icon="inline-start" />
+              Dismiss
+            </Button>
+          </>
+        ) : (
+          <>
+            {rec.status === "Approved" ? (
+              <ToneBadge tone="positive">{kind === "none" ? "Assigned" : "Action approved"}</ToneBadge>
+            ) : (
+              <ToneBadge tone="neutral">Dismissed</ToneBadge>
+            )}
+            <Button size="sm" variant="outline" onClick={onUndo} aria-label={`Undo decision on ${rec.title}`}>
+              <HugeiconsIcon icon={UndoIcon} strokeWidth={2} data-icon="inline-start" />
+              {rec.status === "Approved" ? "Undo" : "Restore"}
+            </Button>
+          </>
+        )}
+        <span className="ml-auto">
+          <DataLabel kind="projected" />
+        </span>
+      </div>
+    </div>
+  )
+}
+
+/** Notice deadlines this close (or closer) are flagged red. */
+const NOTICE_ALERT_DAYS = 14
+
+function ContractDetails({ vendor, monthly, prominent }: { vendor: Vendor; monthly: number; prominent?: boolean }) {
   const days = daysUntil(vendor.renewalDate)
   const deadline = addDays(vendor.renewalDate, -vendor.noticeDays)
   const toDeadline = daysUntil(deadline)
-  const deadlineAlert = toDeadline < 14
+  const deadlineAlert = toDeadline <= NOTICE_ALERT_DAYS
+  const usage = isUsageBased(vendor)
+  const deadlineHint =
+    toDeadline < 0 ? `Passed ${Math.abs(toDeadline)}d ago` : toDeadline === 0 ? "Today" : `In ${toDeadline}d`
+
+  const alert =
+    deadlineAlert && vendor.autoRenew ? (
+      <p className="mt-2 flex items-start gap-1.5 rounded-md border border-destructive/30 bg-destructive/5 px-2.5 py-1.5 text-xs text-destructive">
+        <HugeiconsIcon icon={Alert02Icon} size={14} strokeWidth={2} className="mt-px shrink-0" />
+        {toDeadline < 0
+          ? "The notice deadline has passed. This contract will auto-renew unless the vendor agrees to an exception."
+          : `Send notice by ${shortDate(deadline)} (${toDeadline} days) or this contract auto-renews on current terms.`}
+      </p>
+    ) : null
+
+  const unitPrice = usage ? (
+    "Usage-based"
+  ) : (
+    <span className="font-mono tabular-nums">
+      {money(vendor.unitPrice, { cents: vendor.unitPrice % 1 !== 0 })}/{vendor.unit === "seats" ? "seat" : "host"}
+    </span>
+  )
+
+  if (prominent) {
+    return (
+      <Section title="Contract">
+        <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-4">
+          <KeyFact label="Renewal date">
+            <span className="font-mono tabular-nums">{shortDate(vendor.renewalDate)}</span>
+            <span className="mt-1 block">
+              <DaysBadge days={days} />
+            </span>
+          </KeyFact>
+          <KeyFact label="Auto-renew" alert={vendor.autoRenew && deadlineAlert}>
+            {vendor.autoRenew ? "Yes" : "No"}
+            <span className="block text-[11px] font-normal text-muted-foreground">
+              {vendor.autoRenew ? "Renews unless notice is given" : "Ends unless renewed"}
+            </span>
+          </KeyFact>
+          <KeyFact label="Notice window">
+            <span className="font-mono tabular-nums">{vendor.noticeDays} days</span>
+            <span className="block text-[11px] font-normal text-muted-foreground">before renewal</span>
+          </KeyFact>
+          <KeyFact label="Notice deadline" alert={deadlineAlert}>
+            <span className="font-mono tabular-nums">{shortDate(deadline)}</span>
+            <span className={cn("block text-[11px]", deadlineAlert ? "text-destructive" : "font-normal text-muted-foreground")}>
+              {deadlineHint}
+            </span>
+          </KeyFact>
+        </dl>
+        {alert}
+        <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-xs sm:grid-cols-4">
+          <Field label="Term">
+            <span className="font-mono tabular-nums">{vendor.termMonths} months</span>
+          </Field>
+          <Field label="Start date">
+            <span className="font-mono tabular-nums">{shortDate(vendor.startDate)}</span>
+          </Field>
+          <Field label="Annual value">
+            <span className="font-mono tabular-nums">{perYear(monthly * 12)}</span>
+          </Field>
+          <Field label="Unit price">{unitPrice}</Field>
+        </dl>
+      </Section>
+    )
+  }
 
   return (
     <Section title="Contract details">
@@ -245,7 +402,7 @@ function ContractDetails({ vendor, monthly }: { vendor: Vendor; monthly: number 
             {shortDate(deadline)}
           </span>
           <span className={cn("block text-[11px]", deadlineAlert ? "text-destructive" : "text-muted-foreground")}>
-            {toDeadline < 0 ? `Passed ${Math.abs(toDeadline)}d ago` : toDeadline === 0 ? "Today" : `In ${toDeadline}d`}
+            {deadlineHint}
           </span>
         </Field>
         <Field label="Monthly value">
@@ -254,20 +411,19 @@ function ContractDetails({ vendor, monthly }: { vendor: Vendor; monthly: number 
         <Field label="Annual value">
           <span className="font-mono tabular-nums">{perYear(monthly * 12)}</span>
         </Field>
-        <Field label="Unit price">
-          <span className="font-mono tabular-nums">
-            {money(vendor.unitPrice, { cents: vendor.unitPrice % 1 !== 0 })}/{vendor.unit === "seats" ? "seat" : "host"}
-          </span>
-        </Field>
+        <Field label="Unit price">{unitPrice}</Field>
       </dl>
-      {deadlineAlert && vendor.autoRenew ? (
-        <p className="mt-2 rounded-md border border-destructive/30 bg-destructive/5 px-2.5 py-1.5 text-xs text-destructive">
-          {toDeadline < 0
-            ? "The notice deadline has passed. This contract will auto-renew unless the vendor agrees to an exception."
-            : `Send notice within ${toDeadline} days or this contract auto-renews on current terms.`}
-        </p>
-      ) : null}
+      {alert}
     </Section>
+  )
+}
+
+function KeyFact({ label, alert, children }: { label: string; alert?: boolean; children: ReactNode }) {
+  return (
+    <div className={cn("min-w-0 bg-popover px-3 py-2.5", alert && "bg-destructive/5")}>
+      <dt className={cn("text-[11px]", alert ? "text-destructive" : "text-muted-foreground")}>{label}</dt>
+      <dd className={cn("mt-0.5 text-sm font-semibold", alert && "text-destructive")}>{children}</dd>
+    </div>
   )
 }
 

@@ -1,11 +1,13 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { toast } from "sonner"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
   AnalyticsUpIcon,
+  DatabaseRestoreIcon,
   LayoutAlignLeftIcon,
   Logout03Icon,
   Settings02Icon,
@@ -36,6 +38,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { ResetDemoDialog } from "@/components/settings/reset-demo-dialog"
 import { savings } from "@/lib/store/selectors"
 import { useSpend } from "@/lib/store/spend-store"
 import { NAV_GROUPS, isActive } from "./nav"
@@ -51,6 +54,7 @@ export function AppSidebar() {
   const { state: sidebarState, isMobile, setOpenMobile } = useSidebar()
   const pending = savings(state).pendingCount
   const collapsed = !isMobile && sidebarState === "collapsed"
+  const [resetOpen, setResetOpen] = useState(false)
 
   return (
     <Sidebar collapsible="icon" variant="inset" className="border-0! bg-transparent">
@@ -163,6 +167,10 @@ export function AppSidebar() {
               <HugeiconsIcon icon={Settings02Icon} size={16} strokeWidth={1.7} />
               Settings
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setResetOpen(true)}>
+              <HugeiconsIcon icon={DatabaseRestoreIcon} size={16} strokeWidth={1.7} />
+              Reset demo data
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               variant="destructive"
@@ -173,6 +181,7 @@ export function AppSidebar() {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        <ResetDemoDialog open={resetOpen} onOpenChange={setResetOpen} />
       </SidebarFooter>
     </Sidebar>
   )
