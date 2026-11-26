@@ -4,10 +4,10 @@ import { Bar, BarChart, CartesianGrid, Cell, XAxis, YAxis } from "recharts"
 
 import { DataLabel, SectionCard } from "@/components/shared/dashboard-ui"
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
-import { money, signedPct } from "@/lib/format"
+import { signedPct } from "@/lib/format"
 import { budgetVsActual } from "@/lib/store/selectors"
-import { useSpend } from "@/lib/store/spend-store"
-import { CHART_CLASS, axisMoney } from "./chart-utils"
+import { useMoney, useSpend } from "@/lib/store/spend-store"
+import { CHART_CLASS } from "./chart-utils"
 
 const config = {
   budget: { label: "Budget", theme: { light: "#d6d3d1", dark: "#57534e" } },
@@ -24,6 +24,7 @@ const SHORT: Record<string, string> = {
 }
 
 export function BudgetChart() {
+  const { money, axisMoney } = useMoney()
   const { state } = useSpend()
   const data = budgetVsActual(state)
   const overCount = data.filter((d) => d.over).length
@@ -58,7 +59,7 @@ export function BudgetChart() {
             interval={0}
             tickFormatter={(d: string) => SHORT[d] ?? d}
           />
-          <YAxis tickLine={false} axisLine={false} width={48} tickFormatter={axisMoney} />
+          <YAxis tickLine={false} axisLine={false} width={76} tickFormatter={axisMoney} />
           <ChartTooltip
             cursor={{ fill: "var(--muted)", opacity: 0.5 }}
             content={

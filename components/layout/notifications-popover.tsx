@@ -7,8 +7,8 @@ import { Notification03Icon, ShoppingCart01Icon } from "@hugeicons/core-free-ico
 import { ToneBadge } from "@/components/shared/dashboard-ui"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import type { Anomaly } from "@/lib/data/types"
-import { perMonth, shortDate } from "@/lib/format"
-import { useSpend } from "@/lib/store/spend-store"
+import { shortDate } from "@/lib/format"
+import { useMoney, useSpend } from "@/lib/store/spend-store"
 import { cn } from "@/lib/utils"
 
 export const SEVERITY_TONE: Record<Anomaly["severity"], "negative" | "warning" | "info"> = {
@@ -18,6 +18,7 @@ export const SEVERITY_TONE: Record<Anomaly["severity"], "negative" | "warning" |
 }
 
 export function NotificationsPopover() {
+  const { perMonth, moneyText } = useMoney()
   const { state, openDrawer } = useSpend()
   const [open, setOpen] = useState(false)
   const [seen, setSeen] = useState<Set<string>>(() => new Set())
@@ -76,7 +77,7 @@ export function NotificationsPopover() {
                   </span>
                 </div>
                 <p className="mt-1 text-sm font-medium">{a.title}</p>
-                <p className="line-clamp-2 text-xs text-muted-foreground">{a.detail}</p>
+                <p className="line-clamp-2 text-xs text-muted-foreground">{moneyText(a.detail)}</p>
               </Row>
             ))
           )}

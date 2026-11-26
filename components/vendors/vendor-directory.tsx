@@ -2,7 +2,8 @@
 
 import * as React from "react"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { Search01Icon } from "@hugeicons/core-free-icons"
+import { Add01Icon, DatabaseRestoreIcon, Search01Icon } from "@hugeicons/core-free-icons"
+import { toast } from "sonner"
 
 import { BrandLogo } from "@/components/shared/brand-logo"
 import { DataTable, type SpendColumn } from "@/components/shared/data-table"
@@ -11,7 +12,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DEPARTMENTS } from "@/lib/data/seed"
 import type { Vendor } from "@/lib/data/types"
-import { money, shortDate } from "@/lib/format"
+import { moneyFormat, shortDate } from "@/lib/format"
 import { daysUntil, licenseUtilization, unusedUnits, vendorMonthly } from "@/lib/store/selectors"
 import { useSpend, type SpendState } from "@/lib/store/spend-store"
 import { cn } from "@/lib/utils"
@@ -29,6 +30,7 @@ const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
 ]
 
 function vendorColumns(state: SpendState): Array<SpendColumn<Vendor>> {
+  const { money } = moneyFormat(state.currency)
   return [
     {
       id: "vendor",
@@ -146,8 +148,8 @@ function vendorColumns(state: SpendState): Array<SpendColumn<Vendor>> {
   ]
 }
 
-export function VendorDirectory() {
-  const { state, openDrawer } = useSpend()
+export function VendorDirectory({ onAddVendor }: { onAddVendor?: () => void }) {
+  const { state, openDrawer, resetDemo } = useSpend()
   const [query, setQuery] = React.useState("")
   const [category, setCategory] = React.useState("all")
   const [department, setDepartment] = React.useState("all")
@@ -242,15 +244,42 @@ export function VendorDirectory() {
         initialSorting={[{ id: "cost", desc: true }]}
         className="text-[13px]"
         empty={
-          <EmptyState
-            title="No vendors match these filters"
-            description="Try a different search term or widen the category, department or status filter."
-            action={
-              <Button variant="outline" size="sm" onClick={clearFilters}>
-                Clear filters
-              </Button>
-            }
-          />
+          state.vendors.length === 0 ? (
+            <EmptyState
+              title="No vendor contracts yet"
+              description="Add a SaaS or enterprise vendor to track seats and renewals, or load the NCBA demo dataset."
+              action={
+                <div className="flex flex-wrap items-center justify-center gap-2">
+                  {onAddVendor ? (
+                    <Button size="sm" variant="outline" onClick={onAddVendor}>
+                      <HugeiconsIcon icon={Add01Icon} strokeWidth={2} />
+                      Add vendor
+                    </Button>
+                  ) : null}
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      resetDemo()
+                      toast.success("NCBA demo data loaded")
+                    }}
+                  >
+                    <HugeiconsIcon icon={DatabaseRestoreIcon} strokeWidth={1.8} />
+                    Load demo data
+                  </Button>
+                </div>
+              }
+            />
+          ) : (
+            <EmptyState
+              title="No vendors match these filters"
+              description="Try a different search term or widen the category, department or status filter."
+              action={
+                <Button variant="outline" size="sm" onClick={clearFilters}>
+                  Clear filters
+                </Button>
+              }
+            />
+          )
         }
       />
     </SectionCard>

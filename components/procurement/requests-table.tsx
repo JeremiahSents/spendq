@@ -1,14 +1,18 @@
 "use client"
 
 import * as React from "react"
+import { HugeiconsIcon } from "@hugeicons/react"
+import { Add01Icon, DatabaseRestoreIcon } from "@hugeicons/core-free-icons"
+import { toast } from "sonner"
 
 import { DataTable, type SpendColumn } from "@/components/shared/data-table"
 import { EmptyState, SectionCard } from "@/components/shared/dashboard-ui"
 import { BrandLogo } from "@/components/shared/brand-logo"
+import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { ProcurementRequest } from "@/lib/data/types"
-import { money, shortDate } from "@/lib/format"
-import { useSpend } from "@/lib/store/spend-store"
+import { shortDate } from "@/lib/format"
+import { useMoney, useSpend } from "@/lib/store/spend-store"
 import { cn } from "@/lib/utils"
 
 import { RequestStatusBadge, recommendedAction, recommendedOption } from "./request-meta"
@@ -26,7 +30,7 @@ const LABEL: Record<Filter, string> = { all: "All", pending: "Pending", approved
 
 const idNumber = (id: string) => Number(id.replace(/\D/g, "")) || 0
 
-const COLUMNS: Array<SpendColumn<ProcurementRequest>> = [
+const COLUMNS = ({ money }: Pick<ReturnType<typeof useMoney>, "money">): Array<SpendColumn<ProcurementRequest>> => [
   {
     id: "id",
     header: "ID",
@@ -117,7 +121,8 @@ const COLUMNS: Array<SpendColumn<ProcurementRequest>> = [
 ]
 
 export function RequestsTable({ onNewRequest }: { onNewRequest: () => void }) {
-  const { state, openDrawer } = useSpend()
+  const formats = useMoney()
+  const { state, openDrawer, resetDemo } = useSpend()
   const [filter, setFilter] = React.useState<Filter>("all")
 
   const rows = state.requests.filter(MATCH[filter])
@@ -144,22 +149,47 @@ export function RequestsTable({ onNewRequest }: { onNewRequest: () => void }) {
       }
     >
       <DataTable
-        columns={COLUMNS}
+        columns={COLUMNS(formats)}
         rows={rows}
         getRowId={(r) => r.id}
         onRowClick={(r) => openDrawer({ kind: "request", id: r.id })}
         initialSorting={[{ id: "id", desc: true }]}
         caption="Purchase requests"
         empty={
-          <EmptyState
-            title={`No ${LABEL[filter].toLowerCase()} requests`}
-            description="Requests appear here as soon as they are filed and analyzed."
-            action={
-              <button type="button" onClick={onNewRequest} className="text-xs font-medium underline underline-offset-4">
-                File a purchase request
-              </button>
-            }
-          />
+          state.requests.length === 0 ? (
+            <EmptyState
+              title="No purchase requests yet"
+              description="File a purchase request to run automated reuse and vendor benchmark checks, or load the NCBA demo dataset."
+              action={
+                <div className="flex flex-wrap items-center justify-center gap-2">
+                  <Button size="sm" variant="outline" onClick={onNewRequest}>
+                    <HugeiconsIcon icon={Add01Icon} strokeWidth={2} />
+                    New purchase request
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      resetDemo()
+                      toast.success("NCBA demo data loaded")
+                    }}
+                  >
+                    <HugeiconsIcon icon={DatabaseRestoreIcon} strokeWidth={1.8} />
+                    Load demo data
+                  </Button>
+                </div>
+              }
+            />
+          ) : (
+            <EmptyState
+              title={`No ${LABEL[filter].toLowerCase()} requests`}
+              description="Requests appear here as soon as they are filed and analyzed."
+              action={
+                <button type="button" onClick={onNewRequest} className="text-xs font-medium underline underline-offset-4">
+                  File a purchase request
+                </button>
+              }
+            />
+          )
         }
       />
     </SectionCard>

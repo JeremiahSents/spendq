@@ -5,19 +5,20 @@ import { HugeiconsIcon } from "@hugeicons/react"
 import {
   CheckmarkCircle02Icon,
   Clock01Icon,
+  DatabaseRestoreIcon,
   InformationCircleIcon,
   MoneySavingJarIcon,
   SparklesIcon,
 } from "@hugeicons/core-free-icons"
+import { toast } from "sonner"
 
 import { DataLabel, EmptyState, METRIC_GRID, MetricCard, PageHeader } from "@/components/shared/dashboard-ui"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import { perMonth, perYear } from "@/lib/format"
 import { savings, sparkSeries } from "@/lib/store/selectors"
-import { useSpend } from "@/lib/store/spend-store"
+import { useMoney, useSpend } from "@/lib/store/spend-store"
 import { cn } from "@/lib/utils"
 
 import {
@@ -34,7 +35,8 @@ import { RecommendationRow } from "./recommendation-row"
 import { SavingsLedger } from "./savings-ledger"
 
 export function RecommendationsView() {
-  const { state, setCopilotOpen } = useSpend()
+  const { perMonth, perYear } = useMoney()
+  const { state, setCopilotOpen, resetDemo } = useSpend()
   const [filter, setFilter] = React.useState<RecFilter>("all")
   const [status, setStatus] = React.useState<StatusFilter>("All")
   const [sort, setSort] = React.useState<RecSort>("savings")
@@ -195,6 +197,25 @@ export function RecommendationsView() {
             {rows.map((rec) => (
               <RecommendationRow key={rec.id} rec={rec} />
             ))}
+          </div>
+        ) : state.recommendations.length === 0 ? (
+          <div className="p-4">
+            <EmptyState
+              title="No recommendations yet"
+              description="Recommendations appear automatically as you add underutilized resources, unused seats or purchase requests."
+              action={
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    resetDemo()
+                    toast.success("NCBA demo data loaded")
+                  }}
+                >
+                  <HugeiconsIcon icon={DatabaseRestoreIcon} strokeWidth={1.8} />
+                  Load demo data
+                </Button>
+              }
+            />
           </div>
         ) : (
           <div className="p-4">

@@ -4,10 +4,9 @@ import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
 
 import { DataLabel, SectionCard } from "@/components/shared/dashboard-ui"
 import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
-import { money } from "@/lib/format"
 import { savings, savingsByBucket } from "@/lib/store/selectors"
-import { useSpend } from "@/lib/store/spend-store"
-import { AMBER_COLOR, CHART_CLASS, SAVINGS_COLOR, axisMoney, moneyRow } from "./chart-utils"
+import { useMoney, useSpend } from "@/lib/store/spend-store"
+import { AMBER_COLOR, CHART_CLASS, SAVINGS_COLOR, moneyRow } from "./chart-utils"
 
 const config = {
   pending: { label: "Pending opportunity", theme: AMBER_COLOR },
@@ -19,6 +18,7 @@ const ROW_HEIGHT = 34
 const CHROME_HEIGHT = 56
 
 export function SavingsBucketChart() {
+  const { money, axisMoney } = useMoney()
   const { state } = useSpend()
   const data = savingsByBucket(state)
   const s = savings(state)
@@ -40,7 +40,7 @@ export function SavingsBucketChart() {
           <YAxis type="category" dataKey="bucket" tickLine={false} axisLine={false} width={124} interval={0} />
           <ChartTooltip
             cursor={{ fill: "var(--muted)", opacity: 0.5 }}
-            content={<ChartTooltipContent formatter={moneyRow(config, "/mo")} />}
+            content={<ChartTooltipContent formatter={moneyRow(money, config, "/mo")} />}
           />
           <Bar dataKey="approved" stackId="s" fill="var(--color-approved)" radius={[0, 0, 0, 0]} />
           <Bar dataKey="pending" stackId="s" fill="var(--color-pending)" radius={[0, 4, 4, 0]} />

@@ -5,13 +5,13 @@ import Link from "next/link"
 import { BrandLogo } from "@/components/shared/brand-logo"
 import { EmptyState, PillarBadge, SectionCard } from "@/components/shared/dashboard-ui"
 import { Button } from "@/components/ui/button"
-import { money } from "@/lib/format"
 import { recSavings, savings, topOpportunities } from "@/lib/store/selectors"
 import { useRecActions } from "@/lib/store/use-rec-actions"
-import { useSpend } from "@/lib/store/spend-store"
+import { useMoney, useSpend } from "@/lib/store/spend-store"
 import { ListDivider, ListRow } from "./list-row"
 
 export function TopOpportunities() {
+  const { money } = useMoney()
   const { state, openDrawer } = useSpend()
   const { approve } = useRecActions()
   const recs = topOpportunities(state, 5)

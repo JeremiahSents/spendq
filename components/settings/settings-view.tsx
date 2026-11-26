@@ -3,18 +3,18 @@
 import { useState } from "react"
 import { toast } from "sonner"
 
+import { MoneyInput } from "@/components/forms/form-fields"
 import { DataTable, type SpendColumn } from "@/components/shared/data-table"
-import { DataLabel, PageHeader, SectionCard } from "@/components/shared/dashboard-ui"
+import { DataLabel, PageHeader, SectionCard, ToneBadge } from "@/components/shared/dashboard-ui"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
+import { seedSettings } from "@/lib/data/seed"
 import type { Settings } from "@/lib/data/types"
-import { money } from "@/lib/format"
 import { budgetVsActual } from "@/lib/store/selectors"
-import { useSpend } from "@/lib/store/spend-store"
+import { useMoney, useSpend } from "@/lib/store/spend-store"
 import { cn } from "@/lib/utils"
-import { ResetDemoDialog } from "./reset-demo-dialog"
+import { ResetDemoDialog, type DemoDataMode } from "./reset-demo-dialog"
 
 type ToggleKey = "blockOverBudget" | "requireReuseCheck" | "notifyOnAnomaly" | "weeklyDigest"
 
@@ -25,34 +25,6 @@ const TOGGLES: { key: ToggleKey; label: string; hint: string }[] = [
   { key: "weeklyDigest", label: "Weekly savings digest", hint: "A summary of pending and approved savings every Monday." },
 ]
 
-function MoneyInput({
-  id,
-  value,
-  onChange,
-  invalid,
-}: {
-  id: string
-  value: string
-  onChange: (v: string) => void
-  invalid: boolean
-}) {
-  return (
-    <div className="relative">
-      <span className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 font-mono text-sm text-muted-foreground">$</span>
-      <Input
-        id={id}
-        type="number"
-        min={0}
-        inputMode="numeric"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        aria-invalid={invalid}
-        className="pl-6 font-mono tabular-nums"
-      />
-    </div>
-  )
-}
-
 type BudgetRow = {
   department: string
   budget: number
@@ -62,7 +34,7 @@ type BudgetRow = {
   util: number
 }
 
-const BUDGET_COLUMNS: Array<SpendColumn<BudgetRow>> = [
+const BUDGET_COLUMNS = ({ money }: Pick<ReturnType<typeof useMoney>, "money">): Array<SpendColumn<BudgetRow>> => [
   {
     id: "department",
     header: "Department",
@@ -112,11 +84,13 @@ const BUDGET_COLUMNS: Array<SpendColumn<BudgetRow>> = [
 ]
 
 export function SettingsView() {
-  const { state, updateSettings } = useSpend()
+  const formats = useMoney()
+  const { state, updateSettings, resetDemo } = useSpend()
   const { settings } = state
   const [auto, setAuto] = useState(String(settings.autoApproveBelow))
   const [cfo, setCfo] = useState(String(settings.requireCfoAbove))
-  const [resetOpen, setResetOpen] = useState(false)
+  const [dialogMode, setDialogMode] = useState<DemoDataMode | null>(null)
+  const isEmpty = state.resources.length === 0 && state.vendors.length === 0 && state.requests.length === 0
 
   // Settings can change underneath the form (restored from storage, or a demo reset): follow them.
   const [synced, setSynced] = useState(settings)
@@ -133,7 +107,7 @@ export function SettingsView() {
   const orderValid = autoValid && cfoValid && cfoN > autoN
   const error =
     !autoValid || !cfoValid
-      ? "Enter valid, non-negative dollar amounts."
+      ? "Enter valid, non-negative amounts."
       : !orderValid
         ? "The CFO sign-off threshold must exceed the auto-approve threshold."
         : null
@@ -204,7 +178,7 @@ export function SettingsView() {
       </div>
 
       <SectionCard title="Department budgets" description="Monthly budget against current run-rate. Read-only.">
-        <DataTable columns={BUDGET_COLUMNS} rows={budgets} getRowId={(r) => r.department} caption="Department budgets" />
+        <DataTable columns={BUDGET_COLUMNS(formats)} rows={budgets} getRowId={(r) => r.department} caption="Department budgets" />
       </SectionCard>
 
       <SectionCard title="Workspace">
@@ -217,23 +191,56 @@ export function SettingsView() {
         </p>
       </SectionCard>
 
-      <SectionCard title="Demo data" description="The demo has no database of its own.">
+      <SectionCard
+        title="Demo data"
+        description="Switch between a blank workspace for presenting from scratch and the seeded NCBA demo estate."
+        action={
+          <ToneBadge tone={state.blankMode ? "neutral" : "info"}>
+            {state.blankMode ? "Blank mode" : "Demo data loaded"}
+          </ToneBadge>
+        }
+      >
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="max-w-prose text-xs text-muted-foreground">
-            Decisions, purchase requests and settings are saved in this browser (localStorage), so they survive a
-            refresh but stay on this device. Reset to start the walkthrough again from the original data.
+            Changes stay in this browser (localStorage). Clear starting data to build live from zero, or restore the
+            NCBA demo dataset at any time.
           </p>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setResetOpen(true)}
-            className="border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
-          >
-            Reset demo
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={state.blankMode && isEmpty}
+              onClick={() => setDialogMode("blank")}
+              className="border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
+            >
+              Start blank
+            </Button>
+            <Button
+              variant={state.blankMode ? "default" : "outline"}
+              size="sm"
+              onClick={() => {
+                if (isEmpty) {
+                  resetDemo()
+                  setAuto(String(seedSettings.autoApproveBelow))
+                  setCfo(String(seedSettings.requireCfoAbove))
+                  toast.success("NCBA demo data loaded")
+                  return
+                }
+                setDialogMode("demo")
+              }}
+            >
+              {state.blankMode ? "Load demo data" : "Reset demo data"}
+            </Button>
+          </div>
         </div>
       </SectionCard>
-      <ResetDemoDialog open={resetOpen} onOpenChange={setResetOpen} />
+      <ResetDemoDialog
+        open={dialogMode !== null}
+        onOpenChange={(open) => {
+          if (!open) setDialogMode(null)
+        }}
+        mode={dialogMode ?? "demo"}
+      />
     </div>
   )
 }

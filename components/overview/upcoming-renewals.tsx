@@ -5,17 +5,18 @@ import Link from "next/link"
 import { BrandLogo } from "@/components/shared/brand-logo"
 import { EmptyState, SectionCard, ToneBadge } from "@/components/shared/dashboard-ui"
 import { Button } from "@/components/ui/button"
-import { money, shortDate } from "@/lib/format"
-import { upcomingRenewals } from "@/lib/store/selectors"
-import { useSpend } from "@/lib/store/spend-store"
+import { shortDate } from "@/lib/format"
+import { sum, upcomingRenewals, workspaceTotal } from "@/lib/store/selectors"
+import { useMoney, useSpend } from "@/lib/store/spend-store"
 import { ListDivider, ListRow } from "./list-row"
 
 const WINDOW = 120
 
 export function UpcomingRenewals() {
+  const { money } = useMoney()
   const { state, openDrawer } = useSpend()
   const renewals = upcomingRenewals(state, WINDOW)
-  const annual = renewals.reduce((s, r) => s + r.annual, 0)
+  const annual = workspaceTotal(state.workspace, sum(renewals, (renewal) => renewal.annual))
 
   return (
     <SectionCard

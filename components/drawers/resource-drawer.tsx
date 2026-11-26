@@ -24,9 +24,8 @@ import {
 } from "@/components/ui/chart"
 import { SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import type { CloudResource, RecCategory } from "@/lib/data/types"
-import { money, perMonth, perYear } from "@/lib/format"
 import { recSavings } from "@/lib/store/selectors"
-import { useSpend } from "@/lib/store/spend-store"
+import { useMoney, useSpend } from "@/lib/store/spend-store"
 import { useRecActions } from "@/lib/store/use-rec-actions"
 import { cn } from "@/lib/utils"
 
@@ -46,6 +45,7 @@ const RULES: Partial<Record<RecCategory, string>> = {
 }
 
 export function ResourceDrawer({ id }: { id: string }) {
+  const { perMonth, perYear } = useMoney()
   const { state, openDrawer, resetRecommendation } = useSpend()
   const { approve, dismiss } = useRecActions()
   const resource = state.resources.find((r) => r.id === id)
@@ -153,7 +153,7 @@ export function ResourceDrawer({ id }: { id: string }) {
               <PillarBadge pillar="Reuse" />
             </div>
             <p className="font-mono text-sm tabular-nums">
-              {resource.spare.vcpu} vCPU / {resource.spare.memoryGb} GB available
+              {resource.spare.vcpu} vCPU remaining / {resource.spare.memoryGb} GB memory headroom
             </p>
             <p className="text-xs text-muted-foreground">
               {resource.spare.note} Procurement checks this capacity before approving net-new compute, so new workloads
@@ -318,6 +318,7 @@ function CostComparison({
   currentLabel: string
   recommendedLabel: string
 }) {
+  const { money, perMonth } = useMoney()
   const max = Math.max(1, current, recommended)
   const delta = current - recommended
   const rows = [

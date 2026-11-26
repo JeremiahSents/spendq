@@ -23,10 +23,10 @@ import { SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/compon
 import { DataTable, type SpendColumn } from "@/components/shared/data-table"
 import { DaysBadge, LicenseBar, VendorStatusBadge, isUsageBased, vendorRecs } from "@/components/vendors/vendor-status"
 import type { Recommendation, Vendor, VendorAlternative } from "@/lib/data/types"
-import { money, perMonth, perYear, shortDate } from "@/lib/format"
+import { shortDate } from "@/lib/format"
 import { PILLAR_BY_CATEGORY } from "@/lib/store/build"
 import { daysUntil, licenseUtilization, recSavings, sum, unusedUnits, vendorMonthly } from "@/lib/store/selectors"
-import { useSpend } from "@/lib/store/spend-store"
+import { useMoney, useSpend } from "@/lib/store/spend-store"
 import { useRecActions } from "@/lib/store/use-rec-actions"
 import { cn } from "@/lib/utils"
 
@@ -46,6 +46,7 @@ function addDays(iso: string, days: number) {
 }
 
 export function VendorDrawer({ id }: { id: string }) {
+  const { money, perMonth, moneyText } = useMoney()
   const { state, openDrawer, resetRecommendation } = useSpend()
   const { approve, dismiss } = useRecActions()
   const vendor = state.vendors.find((v) => v.id === id)
@@ -93,7 +94,7 @@ export function VendorDrawer({ id }: { id: string }) {
         {backend ? <ContractDetails vendor={vendor} monthly={monthly} prominent /> : null}
 
         <Section title="Overview">
-          <p className="text-sm leading-relaxed text-muted-foreground">{vendor.description}</p>
+          <p className="text-sm leading-relaxed text-muted-foreground">{moneyText(vendor.description)}</p>
           <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
             <Field label="Contract owner">{vendor.owner}</Field>
             <Field label="Department">{vendor.department}</Field>
@@ -216,6 +217,7 @@ function VendorRecCard({
   onUndo: () => void
   onOpen: () => void
 }) {
+  const { money, perMonth, perYear, moneyText } = useMoney()
   // Seed vendors carry richer copy for their own recommendation; backend ones use the finding.
   const copy = vendor.recommendation?.title === rec.title ? vendor.recommendation : undefined
   const action = copy?.action ?? rec.steps[0]
@@ -235,14 +237,14 @@ function VendorRecCard({
       <div className="flex flex-wrap items-start justify-between gap-2">
         <button type="button" onClick={onOpen} className="min-w-0 flex-1 text-left hover:underline">
           <p className="text-sm font-medium">{rec.title}</p>
-          {action ? <p className="mt-0.5 text-xs text-muted-foreground">{action}</p> : null}
+          {action ? <p className="mt-0.5 text-xs text-muted-foreground">{moneyText(action)}</p> : null}
         </button>
         <div className="flex flex-wrap gap-1">
           <RiskBadge risk={rec.risk} />
           <PillarBadge pillar={PILLAR_BY_CATEGORY[rec.category]} />
         </div>
       </div>
-      {detail ? <p className="mt-2 text-xs leading-relaxed">{detail}</p> : null}
+      {detail ? <p className="mt-2 text-xs leading-relaxed">{moneyText(detail)}</p> : null}
       <div className="mt-3 grid grid-cols-3 gap-2 border-t pt-3">
         {kind === "none" ? (
           <Stat label="Next step">
@@ -308,6 +310,7 @@ function VendorRecCard({
 const NOTICE_ALERT_DAYS = 14
 
 function ContractDetails({ vendor, monthly, prominent }: { vendor: Vendor; monthly: number; prominent?: boolean }) {
+  const { money, perMonth, perYear } = useMoney()
   const days = daysUntil(vendor.renewalDate)
   const deadline = addDays(vendor.renewalDate, -vendor.noticeDays)
   const toDeadline = daysUntil(deadline)
@@ -428,6 +431,7 @@ function KeyFact({ label, alert, children }: { label: string; alert?: boolean; c
 }
 
 function LicenseBreakdown({ vendor, unit }: { vendor: Vendor; unit: string }) {
+  const { money, perMonth } = useMoney()
   const unused = unusedUnits(vendor)
   const util = licenseUtilization(vendor)
   const data = [{ label: "Licenses", active: vendor.active, unused }]
@@ -490,7 +494,7 @@ type AltRow = {
   saving: number | null
 }
 
-const altColumns: Array<SpendColumn<AltRow>> = [
+const altColumns = ({ money, moneyText }: Pick<ReturnType<typeof useMoney>, "money" | "moneyText">): Array<SpendColumn<AltRow>> => [
   {
     id: "option",
     header: "Option",
@@ -509,7 +513,7 @@ const altColumns: Array<SpendColumn<AltRow>> = [
           )}
           <div className="min-w-0">
             <div className="font-medium">{r.name}</div>
-            <div className="text-[11px] leading-snug text-muted-foreground">{r.note}</div>
+            <div className="text-[11px] leading-snug text-muted-foreground">{moneyText(r.note)}</div>
           </div>
         </div>
       )
@@ -561,6 +565,7 @@ const altColumns: Array<SpendColumn<AltRow>> = [
 ]
 
 function Alternatives({ vendor, monthly }: { vendor: Vendor; monthly: number }) {
+  const formats = useMoney()
   const rows: AltRow[] = [
     {
       id: "current",
@@ -592,7 +597,7 @@ function Alternatives({ vendor, monthly }: { vendor: Vendor; monthly: number }) 
       ) : (
         <DataTable
           caption={`Alternatives to ${vendor.name}`}
-          columns={altColumns}
+          columns={altColumns(formats)}
           rows={rows}
           getRowId={(r) => r.id}
           className="text-xs"

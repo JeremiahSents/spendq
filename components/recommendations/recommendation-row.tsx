@@ -7,9 +7,8 @@ import { BrandLogo } from "@/components/shared/brand-logo"
 import { PillarBadge, RecStatusBadge, RiskBadge } from "@/components/shared/dashboard-ui"
 import { Button } from "@/components/ui/button"
 import type { Recommendation } from "@/lib/data/types"
-import { money, perMonth, perYear } from "@/lib/format"
 import { recSavings } from "@/lib/store/selectors"
-import { useSpend } from "@/lib/store/spend-store"
+import { useMoney, useSpend } from "@/lib/store/spend-store"
 import { useRecActions } from "@/lib/store/use-rec-actions"
 import { cn } from "@/lib/utils"
 
@@ -17,6 +16,7 @@ import { EngineTag } from "./engine-tag"
 import { approveLabel, isEngineRec, oneTimeAmount, savingKind, zeroSavingLabel } from "./filters"
 
 export function RecommendationRow({ rec }: { rec: Recommendation }) {
+  const { money, perMonth, perYear } = useMoney()
   const { openDrawer, resetRecommendation } = useSpend()
   const { approve, dismiss } = useRecActions()
   const saving = recSavings(rec)

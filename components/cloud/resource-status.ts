@@ -42,7 +42,7 @@ export function resourceStatus(state: SpendState, r: CloudResource): ResourceSta
     }
   }
   if (r.spare) {
-    return { filter: "spare", label: `Spare capacity · ${r.spare.vcpu} vCPU`, tone: "info", rec, savings: 0 }
+    return { filter: "spare", label: `Spare capacity · ${r.spare.vcpu} vCPU remaining`, tone: "info", rec, savings: 0 }
   }
   return { filter: "optimized", label: "Optimized", tone: "positive", rec, savings: 0 }
 }

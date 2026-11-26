@@ -5,7 +5,7 @@
  */
 import { oneTimeAmount, savingKind } from "@/components/recommendations/filters"
 import type { BrandKey, RecCategory, RecStatus } from "@/lib/data/types"
-import { money, pct, perMonth, perYear } from "@/lib/format"
+import { moneyFormat, pct } from "@/lib/format"
 import {
   licenseUtilization,
   potentialBySource,
@@ -13,10 +13,13 @@ import {
   recSavings,
   recommendationFor,
   savings,
+  scopeWorkspace,
+  SUBSIDIARY_MULTIPLIER,
   sum,
   topOpportunities,
   unusedUnits,
   vendorMonthly,
+  workspaceTotal,
 } from "@/lib/store/selectors"
 import type { DrawerTarget, SpendState } from "@/lib/store/spend-store"
 
@@ -75,6 +78,7 @@ export function routeIntent(text: string): Intent | null {
 const recTarget = (id: string): AnswerTarget => ({ type: "drawer", drawer: { kind: "recommendation", id } })
 
 function waste(s: SpendState): Answer {
+  const { perMonth, perYear } = moneyFormat(s.currency)
   const top = topOpportunities(s, 5)
   const sv = savings(s)
   if (top.length === 0) {
@@ -103,18 +107,14 @@ function waste(s: SpendState): Answer {
 }
 
 function aws(s: SpendState): Answer {
-  const bill = sum(
-    s.resources.filter((r) => r.provider === "AWS"),
-    (r) => r.monthlyCost,
-  )
+  const { money, perMonth } = moneyFormat(s.currency)
+  const bill = workspaceTotal(s.workspace, sum(s.resources.filter((r) => r.provider === "AWS"), (r) => r.monthlyCost))
   const recs = s.recommendations
     .filter((r) => r.source === "cloud" && r.brand === "AWS" && r.status === "Pending")
     .sort((a, b) => recSavings(b) - recSavings(a))
-  const total = sum(recs, recSavings)
-  const approved = sum(
-    s.recommendations.filter((r) => r.source === "cloud" && r.brand === "AWS" && r.status === "Approved"),
-    recSavings,
-  )
+  const total = workspaceTotal(s.workspace, sum(recs, recSavings))
+  const approvedAws = s.recommendations.filter((r) => r.source === "cloud" && r.brand === "AWS" && r.status === "Approved")
+  const approved = workspaceTotal(s.workspace, sum(approvedAws, recSavings))
   if (recs.length === 0) {
     return {
       headline: `No AWS actions are pending against the ${perMonth(bill)} AWS bill.${approved > 0 ? ` ${perMonth(approved)} of AWS savings is already approved.` : ""}`,
@@ -140,6 +140,7 @@ function aws(s: SpendState): Answer {
 }
 
 function seats(s: SpendState): Answer {
+  const { perMonth, perYear } = moneyFormat(s.currency)
   const rows = s.vendors
     .filter((v) => unusedUnits(v) > 0)
     .map((v) => ({ v, unused: unusedUnits(v), waste: unusedUnits(v) * v.unitPrice }))
@@ -153,7 +154,7 @@ function seats(s: SpendState): Answer {
       actions: [{ label: "Open Vendors", href: "/vendors" }],
     }
   }
-  const total = sum(rows, (r) => r.waste)
+  const total = workspaceTotal(s.workspace, sum(rows, (r) => r.waste))
   const units = sum(rows, (r) => r.unused)
   return {
     headline: `${rows.length} subscriptions carry ${units.toLocaleString("en-US")} unused seats or hosts, costing ${perMonth(total)} (${perYear(total * 12)}).`,
@@ -177,6 +178,7 @@ function seats(s: SpendState): Answer {
 }
 
 function procurement(s: SpendState): Answer {
+  const { perMonth } = moneyFormat(s.currency)
   const pending = s.requests.filter((p) => p.status === "Pending review" || p.status === "In review")
   const summary = procurementSummary(s)
   if (pending.length === 0) {
@@ -186,8 +188,8 @@ function procurement(s: SpendState): Answer {
       actions: [{ label: "Open Procurement", href: "/procurement" }],
     }
   }
-  const requested = sum(pending, (p) => p.requestedMonthly)
-  const avoided = sum(pending, (p) => p.analysis.avoided)
+  const requested = workspaceTotal(s.workspace, sum(pending, (p) => p.requestedMonthly))
+  const avoided = workspaceTotal(s.workspace, sum(pending, (p) => p.analysis.avoided))
   const withReuse = pending.filter((p) => p.analysis.reuse)
   return {
     headline:
@@ -216,6 +218,7 @@ function procurement(s: SpendState): Answer {
 }
 
 function alternatives(s: SpendState): Answer {
+  const { perMonth, perYear } = moneyFormat(s.currency)
   const rows = s.vendors
     .map((v) => {
       const current = vendorMonthly(v)
@@ -233,7 +236,7 @@ function alternatives(s: SpendState): Answer {
       actions: [{ label: "Open Vendors", href: "/vendors" }],
     }
   }
-  const total = sum(rows, (r) => r.saving)
+  const total = workspaceTotal(s.workspace, sum(rows, (r) => r.saving))
   return {
     headline: `${rows.length} vendor${rows.length === 1 ? " has" : "s have"} a cheaper alternative with 85%+ feature match, worth up to ${perMonth(total)} combined.`,
     items: rows.slice(0, 5).map(({ v, best, saving }) => ({
@@ -250,6 +253,7 @@ function alternatives(s: SpendState): Answer {
 }
 
 function annual(s: SpendState): Answer {
+  const { perMonth, perYear } = moneyFormat(s.currency)
   const sv = savings(s)
   const total = (sv.approvedMonthly + sv.potentialMonthly) * 12
   const sources = [
@@ -291,6 +295,7 @@ const STATUS_ORDER: Record<RecStatus, number> = { Pending: 0, Approved: 1, Dismi
 
 /** Contract and invoice errors the SpendQ engine found: overbilling, double-billing, duplicate contracts. */
 function billing(s: SpendState): Answer {
+  const { money, perMonth, perYear } = moneyFormat(s.currency)
   const recs = s.recommendations
     .filter((r) => BILLING_CATEGORIES.includes(r.category))
     .sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status] || recSavings(b) - recSavings(a))
@@ -302,8 +307,8 @@ function billing(s: SpendState): Answer {
     }
   }
   const open = recs.filter((r) => r.status === "Pending")
-  const oneTime = sum(open.filter((r) => savingKind(r) === "one-time"), oneTimeAmount)
-  const recurring = sum(open.filter((r) => savingKind(r) !== "one-time"), recSavings)
+  const oneTime = workspaceTotal(s.workspace, sum(open.filter((r) => savingKind(r) === "one-time"), oneTimeAmount))
+  const recurring = workspaceTotal(s.workspace, sum(open.filter((r) => savingKind(r) !== "one-time"), recSavings))
   const parts = [
     oneTime > 0 ? `${money(oneTime)} recoverable as one-time credits or refunds` : null,
     recurring > 0 ? `${perYear(recurring * 12)} from merging duplicate contracts` : null,
@@ -341,7 +346,11 @@ const HANDLERS: Record<Intent, (s: SpendState) => Answer> = {
 }
 
 export function answer(intent: Intent | null, s: SpendState): Answer {
-  if (intent) return HANDLERS[intent](s)
+  if (intent) {
+    const result = HANDLERS[intent](scopeWorkspace(s))
+    if (s.workspace !== "All Subsidiaries") return result
+    return { ...result, headline: result.headline + " Group totals use the " + SUBSIDIARY_MULTIPLIER + "× regional model." }
+  }
   return {
     headline:
       "I can answer questions about waste, your AWS bill, unused seats, overbilling and duplicate invoices, pending procurement requests, cheaper vendors and this year's savings. Try one of these:",

@@ -289,7 +289,7 @@ const resourceInputs: ResourceInput[] = [
     spare: {
       vcpu: 4,
       memoryGb: 16,
-      note: "4 vCPU / 16 GB free after the October node-pool expansion, reserved headroom excluded.",
+      note: "Headroom was verified after the October node-pool expansion.",
     },
   },
   {

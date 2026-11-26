@@ -6,14 +6,13 @@ import { BrandLogo } from "@/components/shared/brand-logo"
 import { DataTable, type SpendColumn } from "@/components/shared/data-table"
 import { DataLabel, EmptyState, SectionCard } from "@/components/shared/dashboard-ui"
 import type { Recommendation } from "@/lib/data/types"
-import { money, perMonth, perYear } from "@/lib/format"
-import { recSavings, sum } from "@/lib/store/selectors"
-import { useSpend } from "@/lib/store/spend-store"
+import { recSavings, savings } from "@/lib/store/selectors"
+import { useMoney, useSpend } from "@/lib/store/spend-store"
 
 import { EngineTag } from "./engine-tag"
 import { isEngineRec, savingKind } from "./filters"
 
-const columns: Array<SpendColumn<Recommendation>> = [
+const columns = ({ money, perMonth, perYear }: Pick<ReturnType<typeof useMoney>, "money" | "perMonth" | "perYear">): Array<SpendColumn<Recommendation>> => [
   {
     id: "recommendation",
     header: "Approved action",
@@ -70,9 +69,11 @@ const columns: Array<SpendColumn<Recommendation>> = [
 
 /** Every approved recommendation and what it is projected to save. */
 export function SavingsLedger() {
+  const formats = useMoney()
+  const { perMonth, perYear } = formats
   const { state, openDrawer } = useSpend()
   const rows = React.useMemo(() => state.recommendations.filter((r) => r.status === "Approved"), [state.recommendations])
-  const monthly = sum(rows, recSavings)
+  const monthly = savings(state).approvedMonthly
 
   return (
     <SectionCard
@@ -82,7 +83,7 @@ export function SavingsLedger() {
     >
       <DataTable
         caption="Savings ledger: approved recommendations"
-        columns={columns}
+        columns={columns(formats)}
         rows={rows}
         getRowId={(r) => r.id}
         onRowClick={(r) => openDrawer({ kind: "recommendation", id: r.id })}
@@ -90,7 +91,7 @@ export function SavingsLedger() {
         pageSize={10}
         className="text-[13px]"
         footer={[
-          <span key="label">Total projected</span>,
+          <span key="label">{state.workspace === "All Subsidiaries" ? "Modeled total projected" : "Total projected"}</span>,
           <span key="mo" className="font-mono text-emerald-700 tabular-nums dark:text-emerald-400">
             {perMonth(monthly)}
           </span>,

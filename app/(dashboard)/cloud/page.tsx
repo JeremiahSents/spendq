@@ -16,11 +16,11 @@ import { UtilizationBands } from "@/components/cloud/utilization-bands"
 import { AddResourceDialog } from "@/components/forms/add-resource-dialog"
 import { DataLabel, METRIC_GRID, MetricCard, PageHeader } from "@/components/shared/dashboard-ui"
 import { Button } from "@/components/ui/button"
-import { money, perMonth, perYear } from "@/lib/format"
 import { cloudSummary, sparkSeries } from "@/lib/store/selectors"
-import { useSpend } from "@/lib/store/spend-store"
+import { useMoney, useSpend } from "@/lib/store/spend-store"
 
 export default function CloudPage() {
+  const { money, perMonth, perYear } = useMoney()
   const { state } = useSpend()
   const summary = cloudSummary(state)
   const [addOpen, setAddOpen] = React.useState(false)
@@ -85,7 +85,7 @@ export default function CloudPage() {
         <UtilizationBands />
       </div>
 
-      <ResourceInventory />
+      <ResourceInventory onAddResource={() => setAddOpen(true)} />
     </>
   )
 }

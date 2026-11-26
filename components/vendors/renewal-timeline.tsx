@@ -2,9 +2,9 @@
 
 import { BrandLogo } from "@/components/shared/brand-logo"
 import { SectionCard } from "@/components/shared/dashboard-ui"
-import { money, shortDate } from "@/lib/format"
+import { shortDate } from "@/lib/format"
 import { daysUntil, vendorMonthly } from "@/lib/store/selectors"
-import { useSpend } from "@/lib/store/spend-store"
+import { useMoney, useSpend } from "@/lib/store/spend-store"
 import { cn } from "@/lib/utils"
 
 const SPAN = 120
@@ -12,6 +12,7 @@ const TICKS = [0, 30, 60, 90, 120]
 
 /** Next-120-day renewal strip. Amber band = notice window, marker = renewal date. */
 export function RenewalTimeline() {
+  const { money } = useMoney()
   const { state, openDrawer } = useSpend()
   const items = state.vendors
     .map((v) => ({ v, days: daysUntil(v.renewalDate) }))

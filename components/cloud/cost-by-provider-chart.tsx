@@ -6,9 +6,8 @@ import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
 import { DataLabel, SectionCard } from "@/components/shared/dashboard-ui"
 import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
 import type { CloudProvider } from "@/lib/data/types"
-import { money } from "@/lib/format"
-import { recSavings, recommendationFor, sum } from "@/lib/store/selectors"
-import { useSpend } from "@/lib/store/spend-store"
+import { recSavings, recommendationFor, sum, workspaceTotal } from "@/lib/store/selectors"
+import { useMoney, useSpend } from "@/lib/store/spend-store"
 
 const PROVIDERS: CloudProvider[] = ["AWS", "Azure", "DigitalOcean", "Vercel", "Neon"]
 
@@ -19,6 +18,7 @@ const config = {
 
 /** Monthly cloud cost per provider, split into what stays and what pending recommendations remove. */
 export function CostByProviderChart({ className }: { className?: string }) {
+  const { money } = useMoney()
   const { state } = useSpend()
 
   const data = React.useMemo(
@@ -30,7 +30,12 @@ export function CostByProviderChart({ className }: { className?: string }) {
           const rec = recommendationFor(state, r.id)
           return rec?.status === "Pending" ? recSavings(rec) : 0
         })
-        return { provider, total, retained: total - savings, savings }
+        return {
+          provider,
+          total: workspaceTotal(state.workspace, total),
+          retained: workspaceTotal(state.workspace, total - savings),
+          savings: workspaceTotal(state.workspace, savings),
+        }
       }).filter((d) => d.total > 0),
     [state],
   )
@@ -42,6 +47,11 @@ export function CostByProviderChart({ className }: { className?: string }) {
       action={<DataLabel kind="simulated" />}
       className={className}
     >
+      {data.length === 0 ? (
+        <div className="flex h-52 items-center justify-center text-xs text-muted-foreground">
+          Add a cloud resource to see monthly spend by provider.
+        </div>
+      ) : (
       <ChartContainer config={config} className="aspect-auto h-52 w-full">
         <BarChart data={data} layout="vertical" margin={{ left: 4, right: 12, top: 4, bottom: 0 }} barSize={16}>
           <CartesianGrid horizontal={false} />
@@ -71,6 +81,7 @@ export function CostByProviderChart({ className }: { className?: string }) {
           <Bar dataKey="savings" stackId="cost" fill="var(--color-savings)" radius={[0, 3, 3, 0]} />
         </BarChart>
       </ChartContainer>
+      )}
     </SectionCard>
   )
 }

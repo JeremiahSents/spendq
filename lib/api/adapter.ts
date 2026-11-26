@@ -143,7 +143,7 @@ export function backendRecommendations(snap: BackendSnapshot): Recommendation[] 
     const saving = savingMonthly(f, snap.usdToKes)
     const current = contract ? contract.annual_value_kes / snap.usdToKes / 12 : saving
     const risk: Risk = action.approval_tier === "cfo" ? "Medium" : "Low"
-    const usd = (kes: number) => `$${Math.round(kes / snap.usdToKes).toLocaleString("en-US")}`
+    const kes = (amount: number) => "KES " + amount.toLocaleString("en-US", { maximumFractionDigits: 2 })
     return [
       {
         id: `rec-${action.id}`,
@@ -162,14 +162,14 @@ export function backendRecommendations(snap: BackendSnapshot): Recommendation[] 
         problem: f.explanation,
         evidence: [
           { label: "Finding", value: `${f.id} · ${f.type.replace(/_/g, " ")}` },
-          { label: "Amount at issue", value: `${usd(f.amount_at_issue_kes)} (KES ${Math.round(f.amount_at_issue_kes).toLocaleString("en-US")})` },
+          { label: "Amount at issue", value: kes(f.amount_at_issue_kes) },
           {
             label: "Estimated saving",
             value:
               f.saving_basis === "one_time"
-                ? `${usd(f.est_saving_kes)} one-time recovery`
+                ? `${kes(f.est_saving_kes)} one-time recovery`
                 : f.saving_basis === "annual"
-                  ? `${usd(f.est_saving_kes)}/yr`
+                  ? `${kes(f.est_saving_kes)}/yr`
                   : "To investigate",
           },
           { label: "Confidence", value: `${Math.round(f.confidence * 100)}%` },

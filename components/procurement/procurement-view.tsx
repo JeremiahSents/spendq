@@ -7,15 +7,15 @@ import { Add01Icon, CheckmarkCircle02Icon, Clock01Icon, Invoice01Icon, PiggyBank
 
 import { DataLabel, METRIC_GRID, MetricCard, PageHeader } from "@/components/shared/dashboard-ui"
 import { Button } from "@/components/ui/button"
-import { money, perMonth, perYear } from "@/lib/format"
 import { procurementSummary, sparkSeries } from "@/lib/store/selectors"
-import { useSpend } from "@/lib/store/spend-store"
+import { useMoney, useSpend } from "@/lib/store/spend-store"
 
 import { NewRequestDialog } from "./new-request-dialog"
 import { PillarStrip } from "./pillar-strip"
 import { RequestsTable } from "./requests-table"
 
 export function ProcurementView() {
+  const { perMonth, perYear } = useMoney()
   const { state } = useSpend()
   const summary = procurementSummary(state)
   const [dialogOpen, setDialogOpen] = React.useState(false)
@@ -58,7 +58,7 @@ export function ProcurementView() {
           tone="positive"
           hint={
             <span className="flex items-center gap-1.5">
-              <span className="font-mono tabular-nums">{money(summary.avoided * 12)}/yr</span>
+              <span className="font-mono tabular-nums">{perYear(summary.avoided * 12)}</span>
               <DataLabel kind="projected" />
             </span>
           }

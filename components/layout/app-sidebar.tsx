@@ -8,6 +8,7 @@ import { HugeiconsIcon } from "@hugeicons/react"
 import {
   AnalyticsUpIcon,
   DatabaseRestoreIcon,
+  Delete02Icon,
   LayoutAlignLeftIcon,
   Logout03Icon,
   Settings02Icon,
@@ -38,7 +39,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { ResetDemoDialog } from "@/components/settings/reset-demo-dialog"
+import { ResetDemoDialog, type DemoDataMode } from "@/components/settings/reset-demo-dialog"
 import { savings } from "@/lib/store/selectors"
 import { useSpend } from "@/lib/store/spend-store"
 import { NAV_GROUPS, isActive } from "./nav"
@@ -50,11 +51,12 @@ const badgeText = (count: number) => (count > 99 ? "99+" : String(count))
 
 export function AppSidebar() {
   const pathname = usePathname()
-  const { state } = useSpend()
+  const { state, resetDemo } = useSpend()
   const { state: sidebarState, isMobile, setOpenMobile } = useSidebar()
   const pending = savings(state).pendingCount
   const collapsed = !isMobile && sidebarState === "collapsed"
-  const [resetOpen, setResetOpen] = useState(false)
+  const [dialogMode, setDialogMode] = useState<DemoDataMode | null>(null)
+  const isEmpty = state.resources.length === 0 && state.vendors.length === 0 && state.requests.length === 0
 
   return (
     <Sidebar collapsible="icon" variant="inset" className="border-0! bg-transparent">
@@ -167,9 +169,25 @@ export function AppSidebar() {
               <HugeiconsIcon icon={Settings02Icon} size={16} strokeWidth={1.7} />
               Settings
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setResetOpen(true)}>
+            <DropdownMenuItem
+              onClick={() => {
+                if (isEmpty) {
+                  resetDemo()
+                  toast.success("NCBA demo data loaded")
+                  return
+                }
+                setDialogMode("demo")
+              }}
+            >
               <HugeiconsIcon icon={DatabaseRestoreIcon} size={16} strokeWidth={1.7} />
-              Reset demo data
+              {state.blankMode ? "Load demo data" : "Reset demo data"}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              disabled={state.blankMode && isEmpty}
+              onClick={() => setDialogMode("blank")}
+            >
+              <HugeiconsIcon icon={Delete02Icon} size={16} strokeWidth={1.7} />
+              Start blank workspace
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -181,7 +199,13 @@ export function AppSidebar() {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-        <ResetDemoDialog open={resetOpen} onOpenChange={setResetOpen} />
+        <ResetDemoDialog
+          open={dialogMode !== null}
+          onOpenChange={(open) => {
+            if (!open) setDialogMode(null)
+          }}
+          mode={dialogMode ?? "demo"}
+        />
       </SidebarFooter>
     </Sidebar>
   )

@@ -8,6 +8,7 @@ import {
   Calendar03Icon,
   CancelCircleIcon,
   CheckmarkCircle02Icon,
+  Download01Icon,
   Search01Icon,
   Tick02Icon,
   UserGroupIcon,
@@ -21,20 +22,25 @@ import {
   recommendedOption,
 } from "@/components/procurement/request-meta"
 import { BrandLogo } from "@/components/shared/brand-logo"
-import { DataLabel, PillarBadge, RiskBadge } from "@/components/shared/dashboard-ui"
+import { DataLabel, PillarBadge, RiskBadge, ToneBadge } from "@/components/shared/dashboard-ui"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet"
-import type { Pillar, ProcurementOption, ProcurementRequest } from "@/lib/data/types"
-import { money, pct, shortDate } from "@/lib/format"
-import { useSpend, type RequestDecision } from "@/lib/store/spend-store"
+import type { Pillar, ProcurementOption, ProcurementRequest, Settings } from "@/lib/data/types"
+import { pct, shortDate, USD_TO_KES, type Currency } from "@/lib/format"
+import { evaluateProcurementOption } from "@/lib/procurement/policies"
+import { useMoney, useSpend, type RequestDecision } from "@/lib/store/spend-store"
 import { cn } from "@/lib/utils"
 
 const EMERALD = "text-emerald-600 dark:text-emerald-400"
-const unitMoney = (n: number) => money(n, { cents: !Number.isInteger(n) })
+type OptionPolicy = ReturnType<typeof evaluateProcurementOption>
+type MoneyFormatter = ReturnType<typeof useMoney>
+type PillarSummary = { pillar: Pillar; text: string }
 
 export function RequestDrawer({ id }: { id: string }) {
-  const { state, decideRequest, restoreRequest } = useSpend()
+  const { state, decideRequest, refreshRequest, restoreRequest } = useSpend()
+  const format = useMoney()
+  const { perMonth, perYear, moneyText } = format
   const request = state.requests.find((r) => r.id === id)
 
   if (!request) {
@@ -50,8 +56,21 @@ export function RequestDrawer({ id }: { id: string }) {
   const best = recommendedOption(request)
   const baseline = asRequestedOption(request)
   const decided = isDecided(request.status)
+  const policies = Object.fromEntries(a.options.map((option) => [
+    option.key,
+    evaluateProcurementOption(state, request, option),
+  ])) as Record<ProcurementOption["key"], OptionPolicy>
+  const bestPolicy = policies[best.key]
+  const baselinePolicy = policies[baseline.key]
+  const needsRefresh = [bestPolicy, baselinePolicy].some(({ reuseCheck }) => reuseCheck === "stale" || reuseCheck === "required")
+  const pillars = pillarBreakdown(request, format)
 
   const decide = (decision: RequestDecision) => {
+    const policy = decision === "optimized" ? bestPolicy : decision === "as-requested" ? baselinePolicy : null
+    if (policy?.blocked) {
+      toast.error(policy.reason ?? "Approval blocked by policy")
+      return
+    }
     const previous = request
     decideRequest(request.id, decision)
     const undo = {
@@ -63,19 +82,24 @@ export function RequestDrawer({ id }: { id: string }) {
     }
     switch (decision) {
       case "optimized":
-        toast.success(`Optimized plan approved · ${money(a.avoided)}/mo avoided`, {
-          description: `${request.id} · ${money(a.avoided * 12)}/yr projected avoided spend`,
+        toast.success(`Optimized plan approved · ${perMonth(a.avoided)} avoided`, {
+          description: `${request.id} · ${perYear(a.avoided * 12)} projected avoided spend`,
           action: undo,
         })
         break
       case "as-requested":
         toast(`${request.id} approved as requested`, {
-          description: a.avoided > 0 ? `${money(a.avoided)}/mo of avoidable spend left on the table` : `${money(baseline.monthly)}/mo committed`,
+          description: a.avoided > 0 ? `${perMonth(a.avoided)} of avoidable spend left on the table` : `${perMonth(baseline.monthly)} committed`,
           action: undo,
         })
         break
       case "review":
-        toast(`${request.id} sent for review`, { description: "The requester and platform owner have been asked to confirm.", action: undo })
+        toast(`${request.id} moved to review`, {
+          description: bestPolicy.tier === "cfo" || baselinePolicy.tier === "cfo"
+            ? "CFO sign-off is required for options above the threshold."
+            : "The request is now marked In review.",
+          action: undo,
+        })
         break
       case "reject":
         toast(`${request.id} rejected`, { action: undo })
@@ -123,12 +147,12 @@ export function RequestDrawer({ id }: { id: string }) {
 
         <SummaryBand request={request} best={best} />
 
-        <PillarMap request={request} />
+        <PillarMap items={pillars} />
 
         {request.justification ? (
           <p className="rounded-lg border bg-muted/30 px-3 py-2 text-xs leading-relaxed text-muted-foreground">
             <span className="font-medium text-foreground">Business justification. </span>
-            {request.justification}
+            {moneyText(request.justification)}
           </p>
         ) : null}
 
@@ -141,8 +165,8 @@ export function RequestDrawer({ id }: { id: string }) {
                   <span className="min-w-0 text-sm font-medium">{a.reuse.source}</span>
                 </div>
                 <dl className="grid grid-cols-2 gap-2">
-                  <Stat label="Reallocated" value={`${a.reuse.quantity} ${a.unit}`} />
-                  <Stat label="Avoided" value={`${money(a.reuse.avoided)}/mo`} className={EMERALD} />
+                  <Stat label={request.status === "Approved (Optimized)" ? "Reserved" : "Matched"} value={`${a.reuse.quantity} ${a.unit}`} />
+                  <Stat label="Avoided" value={perMonth(a.reuse.avoided)} className={EMERALD} />
                 </dl>
                 <p className="text-xs text-muted-foreground">Already paid for. Reallocating it costs nothing extra.</p>
               </div>
@@ -161,8 +185,8 @@ export function RequestDrawer({ id }: { id: string }) {
                 <dl className="grid grid-cols-2 gap-2">
                   <Stat
                     label="Unit price"
-                    value={`${unitMoney(a.alternative.unitPrice)}/${a.unit}`}
-                    sub={`vs ${unitMoney(a.unitPrice)}/${a.unit} requested`}
+                    value={`${unitMoney(a.alternative.unitPrice, format)}/${a.unit}`}
+                    sub={`vs ${unitMoney(a.unitPrice, format)}/${a.unit} requested`}
                   />
                   <Stat label="Feature match" value={pct(a.alternative.featureMatch)} sub="90% minimum to qualify" />
                 </dl>
@@ -176,13 +200,27 @@ export function RequestDrawer({ id }: { id: string }) {
         </div>
 
         <section className="space-y-2">
-          <div className="flex items-baseline justify-between gap-2">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h3 className="font-heading text-sm font-semibold">Options</h3>
-            <span className="text-xs text-muted-foreground">Cheapest plan that meets the requirement is recommended.</span>
+            <span className="text-xs text-muted-foreground">
+              Auto-approval below {perMonth(state.settings.autoApproveBelow)} · CFO sign-off above {perMonth(state.settings.requireCfoAbove)}
+            </span>
           </div>
+          {!decided && needsRefresh ? (
+            <div role="status" className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3">
+              <p className="text-xs text-foreground">Refresh the analysis to check current spare capacity before approval.</p>
+              <Button size="sm" variant="outline" onClick={() => refreshRequest(request.id)}>Refresh analysis</Button>
+            </div>
+          ) : null}
           <div className={cn("grid gap-3", a.options.length >= 3 ? "lg:grid-cols-3" : a.options.length === 2 ? "md:grid-cols-2" : "")}>
             {a.options.map((o) => (
-              <OptionCard key={o.key} option={o} baseline={baseline} />
+              <OptionCard
+                key={o.key}
+                option={o}
+                baseline={baseline}
+                policy={policies[o.key]}
+                blockOverBudget={state.settings.blockOverBudget}
+              />
             ))}
           </div>
         </section>
@@ -193,16 +231,25 @@ export function RequestDrawer({ id }: { id: string }) {
               {a.steps.map((s) => (
                 <li key={s} className="flex items-start gap-2 text-xs leading-relaxed">
                   <HugeiconsIcon icon={CheckmarkCircle02Icon} size={14} className={cn("mt-0.5 shrink-0", EMERALD)} />
-                  <span className="font-mono">{s}</span>
+                  <span className="font-mono">{moneyText(s)}</span>
                 </li>
               ))}
             </ul>
           </Panel>
-          <BudgetCheck request={request} best={best} />
+          <BudgetCheck policy={bestPolicy} best={best} />
         </div>
       </div>
 
       <SheetFooter className="border-t bg-muted/30">
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-fit"
+          onClick={() => exportApprovalBrief(request, policies, pillars, format, state.currency, state.settings)}
+        >
+          <HugeiconsIcon icon={Download01Icon} strokeWidth={1.8} />
+          Export approval brief
+        </Button>
         {decided ? (
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="text-xs text-muted-foreground">
@@ -215,12 +262,12 @@ export function RequestDrawer({ id }: { id: string }) {
           </div>
         ) : (
           <div className="flex flex-wrap items-center gap-2">
-            <Button onClick={() => decide("optimized")} disabled={a.avoided <= 0}>
+            <Button onClick={() => decide("optimized")} disabled={a.avoided <= 0 || bestPolicy.blocked}>
               <HugeiconsIcon icon={Tick02Icon} strokeWidth={2} />
               Approve optimized plan
-              {a.avoided > 0 ? <span className="font-mono tabular-nums opacity-80">· {money(best.monthly)}/mo</span> : null}
+              {a.avoided > 0 ? <span className="font-mono tabular-nums opacity-80">· {perMonth(best.monthly)}</span> : null}
             </Button>
-            <Button variant="outline" onClick={() => decide("as-requested")}>
+            <Button variant="outline" onClick={() => decide("as-requested")} disabled={baselinePolicy.blocked}>
               Approve as requested
             </Button>
             <Button variant="outline" onClick={() => decide("review")} disabled={request.status === "In review"}>
@@ -239,6 +286,7 @@ export function RequestDrawer({ id }: { id: string }) {
 }
 
 function DecisionBanner({ request, onReopen }: { request: ProcurementRequest; onReopen: () => void }) {
+  const { perMonth, perYear } = useMoney()
   const a = request.analysis
   const tone =
     request.status === "Approved (Optimized)"
@@ -248,11 +296,11 @@ function DecisionBanner({ request, onReopen }: { request: ProcurementRequest; on
         : "border-border bg-muted/40"
   const detail =
     request.status === "Approved (Optimized)"
-      ? `${money(a.avoided)}/mo (${money(a.avoided * 12)}/yr) projected avoided spend now counts toward every savings metric.`
+      ? `${perMonth(a.avoided)} projected avoided spend, or ${perYear(a.avoided * 12)}.`
       : request.status === "Approved (As requested)"
         ? a.avoided > 0
-          ? `Approved at ${money(request.requestedMonthly)}/mo. ${money(a.avoided)}/mo of avoidable spend was not captured.`
-          : `Approved at ${money(request.requestedMonthly)}/mo.`
+          ? `Approved at ${perMonth(request.requestedMonthly)}. The optimized plan would have saved ${perMonth(a.avoided)}.`
+          : `Approved at ${perMonth(request.requestedMonthly)}.`
         : "No spend will be committed for this request."
   return (
     <div className={cn("flex flex-wrap items-center justify-between gap-2 rounded-lg border px-3 py-2.5", tone)}>
@@ -269,10 +317,11 @@ function DecisionBanner({ request, onReopen }: { request: ProcurementRequest; on
 }
 
 function SummaryBand({ request, best }: { request: ProcurementRequest; best: ProcurementOption }) {
+  const { money, perMonth, perYear } = useMoney()
   const a = request.analysis
   const cells: { label: string; value: string; sub?: string; tone?: string; projected?: boolean }[] = [
-    { label: "Original requested spend", value: `${money(request.requestedMonthly)}/mo`, sub: `${money(request.requestedMonthly * 12)}/yr` },
-    { label: "Optimized spend", value: `${money(best.monthly)}/mo`, sub: `${money(best.monthly * 12)}/yr` },
+    { label: "Original requested spend", value: perMonth(request.requestedMonthly), sub: perYear(request.requestedMonthly * 12) },
+    { label: "Optimized spend", value: perMonth(best.monthly), sub: perYear(best.monthly * 12) },
     { label: "Monthly avoided spend", value: money(a.avoided), tone: a.avoided > 0 ? EMERALD : undefined, sub: "per month" },
     {
       label: "Annual projected savings",
@@ -297,7 +346,7 @@ function SummaryBand({ request, best }: { request: ProcurementRequest; best: Pro
           )}
         >
           <p className="truncate text-[11px] font-medium text-muted-foreground">{c.label}</p>
-          <p className={cn("truncate font-heading font-mono text-xl font-semibold tracking-[-0.02em] tabular-nums", c.tone)}>
+          <p className={cn("font-mono text-lg font-semibold tracking-[-0.02em] break-words tabular-nums", c.tone)}>
             {c.value}
           </p>
           {c.projected ? <DataLabel kind="projected" /> : <p className="font-mono text-[11px] text-muted-foreground tabular-nums">{c.sub}</p>}
@@ -307,25 +356,32 @@ function SummaryBand({ request, best }: { request: ProcurementRequest; best: Pro
   )
 }
 
-function PillarMap({ request }: { request: ProcurementRequest }) {
+function unitMoney(amount: number, { money }: MoneyFormatter) {
+  return money(amount, { cents: !Number.isInteger(amount) })
+}
+
+function pillarBreakdown(request: ProcurementRequest, format: MoneyFormatter): PillarSummary[] {
   const a = request.analysis
-  const items: { pillar: Pillar; text: string }[] = [
+  return [
     {
       pillar: "Reuse",
-      text: a.reuse ? `${a.reuse.quantity} ${a.unit} of spare capacity reallocated` : "No spare capacity available",
+      text: a.reuse ? `${a.reuse.quantity} ${a.unit} matched on ${a.reuse.source}` : "No reusable capacity matched",
     },
     {
       pillar: "Innovate",
       text: a.alternative
-        ? `${a.alternative.name} benchmarked at ${unitMoney(a.alternative.unitPrice)}/${a.unit}`
+        ? `${a.alternative.name} met ${pct(a.alternative.featureMatch)} of requirements at ${unitMoney(a.alternative.unitPrice, format)}/${a.unit}`
         : "Preferred vendor is the cheapest qualifying offer",
     },
-    { pillar: "Automate", text: `${a.steps.length} checks run instantly on submission` },
+    { pillar: "Automate", text: `${a.steps.length} checks completed on the request` },
     {
       pillar: "Eliminate",
-      text: a.avoided > 0 ? `${money(a.avoided)}/mo stopped before it hits the bill` : "Nothing to eliminate",
+      text: a.avoided > 0 ? `${format.perMonth(a.avoided)} in avoidable spend` : "No avoidable spend identified",
     },
   ]
+}
+
+function PillarMap({ items }: { items: PillarSummary[] }) {
   return (
     <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
       {items.map((it) => (
@@ -363,7 +419,37 @@ function Stat({ label, value, sub, className }: { label: string; value: string; 
   )
 }
 
-function OptionCard({ option: o, baseline }: { option: ProcurementOption; baseline: ProcurementOption }) {
+function policyBadges(policy: OptionPolicy, blockOverBudget: boolean) {
+  const badges: { label: string; tone: React.ComponentProps<typeof ToneBadge>["tone"] }[] = [
+    policy.tier === "cfo"
+      ? { label: "Requires CFO sign-off", tone: "warning" }
+      : policy.tier === "auto"
+        ? { label: policy.blocked ? "Below auto-approval threshold" : "Auto-approval eligible", tone: policy.blocked ? "neutral" : "positive" }
+        : { label: "Standard approval", tone: "neutral" },
+  ]
+  if (policy.overBudget) {
+    badges.push({ label: blockOverBudget ? "Over budget · blocked" : "Over budget", tone: blockOverBudget ? "negative" : "warning" })
+  } else {
+    badges.push({ label: "Fits budget", tone: "positive" })
+  }
+  if (policy.reuseCheck === "complete") badges.push({ label: "Reuse check complete", tone: "info" })
+  if (policy.reuseCheck === "required") badges.push({ label: "Reuse check required", tone: "warning" })
+  if (policy.reuseCheck === "stale") badges.push({ label: "Spare capacity changed", tone: "warning" })
+  return badges
+}
+
+function OptionCard({
+  option: o,
+  baseline,
+  policy,
+  blockOverBudget,
+}: {
+  option: ProcurementOption
+  baseline: ProcurementOption
+  policy: OptionPolicy
+  blockOverBudget: boolean
+}) {
+  const { money, perMonth, moneyText } = useMoney()
   const saving = Math.max(0, baseline.monthly - o.monthly)
   const isBaseline = o.key === "as-requested"
   return (
@@ -380,20 +466,26 @@ function OptionCard({ option: o, baseline }: { option: ProcurementOption; baseli
             <Badge className="shrink-0 bg-accent text-accent-foreground">Recommended</Badge>
           ) : null}
         </div>
-        <p className="text-xs leading-snug text-muted-foreground">{o.description}</p>
+        <p className="text-xs leading-snug text-muted-foreground">{moneyText(o.description)}</p>
+        <div className="flex flex-wrap gap-1 pt-1" aria-label="Current policy evaluation">
+          {policyBadges(policy, blockOverBudget).map(({ label, tone }) => <ToneBadge key={label} tone={tone}>{label}</ToneBadge>)}
+        </div>
+        {policy.reason && policy.reason !== "Requires CFO sign-off" ? (
+          <p className="pt-1 text-xs text-muted-foreground">{moneyText(policy.reason)}</p>
+        ) : null}
       </div>
 
       <ul className="space-y-1.5 border-y py-2">
         {o.lines.map((l) => (
           <li key={l.label} className="flex items-start gap-2 text-xs">
             {l.brand ? <BrandLogo brand={l.brand} size="xs" /> : <span className="size-5 shrink-0" />}
-            <span className="min-w-0 flex-1 leading-snug">{l.label}</span>
+            <span className="min-w-0 flex-1 leading-snug">{moneyText(l.label)}</span>
             {l.monthly === 0 ? (
               <span className={cn("shrink-0 text-right text-[11px] font-medium", EMERALD)}>
-                <span className="font-mono tabular-nums">$0</span> · already paid for
+                <span className="font-mono tabular-nums">{money(0)}</span> · already paid for
               </span>
             ) : (
-              <span className="shrink-0 font-mono tabular-nums">{money(l.monthly)}/mo</span>
+              <span className="shrink-0 font-mono tabular-nums">{perMonth(l.monthly)}</span>
             )}
           </li>
         ))}
@@ -439,8 +531,10 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
   )
 }
 
-function BudgetCheck({ request, best }: { request: ProcurementRequest; best: ProcurementOption }) {
-  const b = request.analysis.budget
+function BudgetCheck({ policy, best }: { policy: OptionPolicy; best: ProcurementOption }) {
+  const { money, perMonth } = useMoney()
+  const b = policy.budget
+  const fits = !policy.overBudget
   const committed = b.actual + best.monthly
   const used = b.budget > 0 ? Math.min(100, (committed / b.budget) * 100) : 100
   return (
@@ -448,7 +542,7 @@ function BudgetCheck({ request, best }: { request: ProcurementRequest; best: Pro
       <div className="space-y-3">
         <div className="flex items-center justify-between gap-2">
           <span className="text-xs text-muted-foreground">{b.department} monthly budget</span>
-          {b.fits ? (
+          {fits ? (
             <span className={cn("inline-flex items-center gap-1 text-xs font-medium", EMERALD)}>
               <HugeiconsIcon icon={Tick02Icon} size={14} strokeWidth={2} />
               Fits budget
@@ -462,21 +556,102 @@ function BudgetCheck({ request, best }: { request: ProcurementRequest; best: Pro
         </div>
         <div className="h-1.5 overflow-hidden rounded-full bg-muted">
           <div
-            className={cn("h-full rounded-full", b.fits ? "bg-emerald-500" : "bg-destructive")}
+            className={cn("h-full rounded-full", fits ? "bg-emerald-500" : "bg-destructive")}
             style={{ width: `${Math.max(2, used)}%` }}
           />
         </div>
         <dl className="grid grid-cols-2 gap-2">
-          <Stat label="Budget" value={`${money(b.budget)}/mo`} />
-          <Stat label="Actual spend" value={`${money(b.actual)}/mo`} />
+          <Stat label="Budget" value={perMonth(b.budget)} />
+          <Stat label="Actual spend" value={perMonth(b.actual)} />
           <Stat
             label="Headroom"
-            value={b.headroom < 0 ? `−${money(Math.abs(b.headroom))} over budget` : `${money(b.headroom)}/mo`}
-            className={b.headroom < 0 || !b.fits ? "text-destructive" : undefined}
+            value={b.headroom < 0 ? `${money(Math.abs(b.headroom))} over budget` : perMonth(b.headroom)}
+            className={b.headroom < 0 || !fits ? "text-destructive" : undefined}
           />
-          <Stat label="Recommended plan" value={`${money(best.monthly)}/mo`} />
+          <Stat label="Recommended plan" value={perMonth(best.monthly)} />
         </dl>
       </div>
     </Panel>
   )
+}
+
+function exportApprovalBrief(
+  request: ProcurementRequest,
+  policies: Record<ProcurementOption["key"], OptionPolicy>,
+  pillars: PillarSummary[],
+  { perMonth, perYear, moneyText }: MoneyFormatter,
+  currency: Currency,
+  settings: Settings,
+) {
+  const { analysis, status } = request
+  const best = recommendedOption(request)
+  const budget = policies[best.key].budget
+  const decision = status === "Approved (Optimized)"
+    ? best
+    : status === "Approved (As requested)"
+      ? asRequestedOption(request)
+      : null
+  const options = analysis.options.flatMap((option) => {
+    const policy = policies[option.key]
+    return [
+      `${option.label}${option.recommended ? " (recommended)" : ""}`,
+      moneyText(option.description),
+      `  Cost: ${perMonth(option.monthly)} · ${perYear(option.monthly * 12)}`,
+      `  Requirements: ${option.requirements}`,
+      `  Complexity: ${option.complexity} · Risk: ${option.risk}`,
+      `  Policy: ${policyBadges(policy, settings.blockOverBudget).map(({ label }) => label).join(", ")}`,
+      ...option.lines.map((line) => `  - ${moneyText(line.label)}: ${perMonth(line.monthly)}`),
+      "",
+    ]
+  })
+  const text = [
+    "SpendIQ approval brief",
+    `Request ID: ${request.id}`,
+    `Request: ${request.title}`,
+    `Department: ${request.department}`,
+    `Requester: ${request.requester}`,
+    `Submitted: ${shortDate(request.submittedAt)}`,
+    `Currency: ${currency} (demo rate: 1 USD = ${USD_TO_KES} KES)`,
+    "",
+    "Business justification",
+    request.justification || "No justification recorded.",
+    "",
+    "Analysis by pillar",
+    ...pillars.map(({ pillar, text }) => `${pillar}: ${text}`),
+    `Projected avoided spend: ${perMonth(analysis.avoided)} · ${perYear(analysis.avoided * 12)} · ${pct(analysis.reductionPct)} reduction`,
+    "",
+    "Checks completed",
+    ...analysis.steps.map((step) => `- ${moneyText(step)}`),
+    "",
+    "Options compared",
+    ...options,
+    "Current budget and approval policy",
+    `Department budget: ${perMonth(budget.budget)}`,
+    `Current spend: ${perMonth(budget.actual)}`,
+    `Budget headroom: ${perMonth(budget.headroom)}`,
+    `Recommended plan: ${perMonth(best.monthly)} · ${policies[best.key].overBudget ? "Over budget" : "Fits budget"}`,
+    `Auto-approval threshold: below ${perMonth(settings.autoApproveBelow)}`,
+    `CFO sign-off threshold: above ${perMonth(settings.requireCfoAbove)}`,
+    `Over-budget approvals: ${settings.blockOverBudget ? "Blocked" : "Warning only"}`,
+    `Cloud reuse check: ${settings.requireReuseCheck ? "Required" : "Optional"}`,
+    "",
+    "Decision",
+    `Recorded status: ${status}`,
+    ...(decision
+      ? [
+          `Approved option: ${decision.label}`,
+          `Approved cost: ${perMonth(decision.monthly)}`,
+          `Recorded budget headroom: ${perMonth(analysis.budget.headroom)}`,
+        ]
+      : []),
+    "",
+  ].join("\n")
+  const url = URL.createObjectURL(new Blob([text], { type: "text/plain;charset=utf-8" }))
+  const link = document.createElement("a")
+  link.href = url
+  link.download = `spendiq-${request.id}-approval-brief.txt`
+  document.body.append(link)
+  link.click()
+  link.remove()
+  window.setTimeout(() => URL.revokeObjectURL(url), 1_000)
 }

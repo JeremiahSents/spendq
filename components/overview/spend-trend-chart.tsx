@@ -4,10 +4,9 @@ import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
 
 import { ChangePill, DataLabel, SectionCard } from "@/components/shared/dashboard-ui"
 import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
-import { money } from "@/lib/format"
 import { RANGE_LABEL, monthOverMonth, spendTrend } from "@/lib/store/selectors"
-import { useSpend } from "@/lib/store/spend-store"
-import { CHART_CLASS, CLOUD_COLOR, VENDOR_COLOR, axisMoney, moneyRow } from "./chart-utils"
+import { useMoney, useSpend } from "@/lib/store/spend-store"
+import { CHART_CLASS, CLOUD_COLOR, VENDOR_COLOR, moneyRow } from "./chart-utils"
 
 const config = {
   cloud: { label: "Cloud infrastructure", theme: CLOUD_COLOR },
@@ -15,6 +14,7 @@ const config = {
 } satisfies ChartConfig
 
 export function SpendTrendChart() {
+  const { money, axisMoney } = useMoney()
   const { state } = useSpend()
   const data = spendTrend(state)
   const latest = data[data.length - 1]
@@ -39,10 +39,10 @@ export function SpendTrendChart() {
         <AreaChart data={data} margin={{ left: 0, right: 8, top: 8 }}>
           <CartesianGrid vertical={false} />
           <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} />
-          <YAxis tickLine={false} axisLine={false} width={48} tickFormatter={axisMoney} />
+          <YAxis tickLine={false} axisLine={false} width={76} tickFormatter={axisMoney} />
           <ChartTooltip
             cursor={false}
-            content={<ChartTooltipContent indicator="dot" formatter={moneyRow(config)} />}
+            content={<ChartTooltipContent indicator="dot" formatter={moneyRow(money, config)} />}
           />
           <Area
             dataKey="vendor"

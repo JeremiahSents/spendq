@@ -24,10 +24,10 @@ import { BrandLogo } from "@/components/shared/brand-logo"
 import { DataLabel, EmptyState, PillarBadge, RecStatusBadge, RiskBadge } from "@/components/shared/dashboard-ui"
 import { Button } from "@/components/ui/button"
 import { SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet"
-import { money, pct, perMonth, perYear } from "@/lib/format"
+import { pct } from "@/lib/format"
 import { PILLAR_COPY } from "@/lib/store/build"
 import { recSavings } from "@/lib/store/selectors"
-import { useSpend } from "@/lib/store/spend-store"
+import { useMoney, useSpend } from "@/lib/store/spend-store"
 import { useRecActions } from "@/lib/store/use-rec-actions"
 import { cn } from "@/lib/utils"
 
@@ -47,6 +47,7 @@ function Section({ title, children, aside }: { title: string; children: ReactNod
 }
 
 export function RecommendationDrawer({ id }: { id: string }) {
+  const { money, perMonth, perYear, moneyText } = useMoney()
   const { state, openDrawer, closeDrawer, resetRecommendation } = useSpend()
   const { approve, dismiss } = useRecActions()
   const rec = state.recommendations.find((r) => r.id === id)
@@ -102,7 +103,7 @@ export function RecommendationDrawer({ id }: { id: string }) {
 
       <div className="flex-1 space-y-6 overflow-y-auto px-4 pb-4">
         <Section title="Problem">
-          <p className="text-sm leading-relaxed">{rec.problem || "No analysis recorded for this item."}</p>
+          <p className="text-sm leading-relaxed">{rec.problem ? moneyText(rec.problem) : "No analysis recorded for this item."}</p>
           {engine ? (
             <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <HugeiconsIcon icon={AiSearch02Icon} size={14} strokeWidth={1.8} />
@@ -141,9 +142,9 @@ export function RecommendationDrawer({ id }: { id: string }) {
                       "font-mono text-xs font-medium tabular-nums",
                       engine ? "break-words whitespace-normal" : "truncate",
                     )}
-                    title={e.value}
+                    title={moneyText(e.value)}
                   >
-                    {e.value}
+                    {moneyText(e.value)}
                   </dd>
                 </div>
               )
@@ -158,7 +159,7 @@ export function RecommendationDrawer({ id }: { id: string }) {
                 <span className="flex size-5 shrink-0 items-center justify-center rounded-full border font-mono text-[11px] tabular-nums">
                   {i + 1}
                 </span>
-                <span className="pt-px">{step}</span>
+                <span className="pt-px">{moneyText(step)}</span>
               </li>
             ))}
           </ol>
@@ -178,7 +179,7 @@ export function RecommendationDrawer({ id }: { id: string }) {
               <p className="text-xs text-muted-foreground">
                 No direct saving is booked for this finding. Assigning it hands it to the budget owner
                 {rec.category === "Renewal notice" ? " to send notice before the deadline." : " to investigate."}
-                {atIssue ? ` Amount at issue: ${atIssue}.` : null}
+                {atIssue ? ` Amount at issue: ${moneyText(atIssue)}.` : null}
               </p>
             </div>
           ) : kind === "one-time" ? (

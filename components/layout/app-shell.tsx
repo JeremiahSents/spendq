@@ -5,9 +5,14 @@ import type { CSSProperties, ReactNode } from "react"
 import { CopilotDrawer } from "@/components/copilot/copilot-drawer"
 import { DrawerHost } from "@/components/drawers/drawer-host"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
-import { SpendProvider } from "@/lib/store/spend-store"
+import { SpendProvider, useSpend } from "@/lib/store/spend-store"
 import { AppHeader } from "./app-header"
 import { AppSidebar } from "./app-sidebar"
+
+function WorkspaceCopilot() {
+  const { state } = useSpend()
+  return <CopilotDrawer key={state.workspace} />
+}
 
 export function AppShell({ children }: { children: ReactNode }) {
   return (
@@ -24,7 +29,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </SidebarInset>
         <DrawerHost />
-        <CopilotDrawer />
+        <WorkspaceCopilot />
       </SidebarProvider>
     </SpendProvider>
   )

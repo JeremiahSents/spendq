@@ -9,13 +9,23 @@ import { BrandLogo } from "@/components/shared/brand-logo"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
-import { useSpend } from "@/lib/store/spend-store"
+import type { Currency } from "@/lib/format"
+import { useMoney, useSpend } from "@/lib/store/spend-store"
 
 import { QUICK_PROMPTS, answer, routeIntent, type Answer, type AnswerTarget, type Intent } from "./answers"
+import { workspaceFacts } from "./workspace-facts"
 
-type Message = { id: number; role: "user"; text: string } | { id: number; role: "assistant"; answer: Answer }
+type Fallback = "unconfigured" | "authentication" | "unavailable"
 
-const TYPING_MS = 600
+const FALLBACK_LABEL: Record<Fallback, string> = {
+  unconfigured: "Demo answer",
+  authentication: "Demo answer · AI Gateway authentication failed",
+  unavailable: "Demo answer · AI Gateway unavailable",
+}
+
+type Message =
+  | { id: number; role: "user"; text: string }
+  | { id: number; role: "assistant"; answers: Record<Currency, Answer>; generated: string | null; fallback: Fallback }
 
 export function CopilotDrawer() {
   const { state, setCopilotOpen, openDrawer } = useSpend()
@@ -24,42 +34,68 @@ export function CopilotDrawer() {
   const [typing, setTyping] = React.useState(false)
   const [draft, setDraft] = React.useState("")
 
-  const stateRef = React.useRef(state)
-  React.useEffect(() => {
-    stateRef.current = state
-  }, [state])
   const nextId = React.useRef(1)
-  const timer = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+  const inFlight = React.useRef<AbortController | null>(null)
   const scrollRef = React.useRef<HTMLDivElement>(null)
 
-  React.useEffect(() => () => {
-    if (timer.current) clearTimeout(timer.current)
-  }, [])
+  React.useEffect(() => () => inFlight.current?.abort(), [])
 
   React.useEffect(() => {
     const el = scrollRef.current
     if (el) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" })
   }, [messages, typing])
 
-  const ask = (text: string, intent?: Intent | null) => {
+  const ask = async (text: string, intent?: Intent | null) => {
     const question = text.trim()
-    if (!question || typing) return
+    if (!question || inFlight.current) return
     const resolved = intent === undefined ? routeIntent(question) : intent
-    setMessages((m) => [...m, { id: nextId.current++, role: "user", text: question }])
+    const request = new AbortController()
+    inFlight.current = request
+    const userMessage = { id: nextId.current++, role: "user", text: question } as const
+    setMessages((m) => [...m, userMessage])
     setDraft("")
     setTyping(true)
-    timer.current = setTimeout(() => {
-      // Computed from the live store at answer time, so approvals change the figures.
-      const result = answer(resolved, stateRef.current)
-      setMessages((m) => [...m, { id: nextId.current++, role: "assistant", answer: result }])
-      setTyping(false)
-      timer.current = null
-    }, TYPING_MS)
+
+    let generated: string | null = null
+    let fallback: Fallback = "unavailable"
+    try {
+      const response = await fetch("/api/copilot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question, facts: workspaceFacts(state) }),
+        signal: AbortSignal.any([request.signal, AbortSignal.timeout(12_000)]),
+      })
+      if (response.status === 204) {
+        fallback = "unconfigured"
+      } else if (response.status === 503) {
+        fallback = "authentication"
+      } else if (response.ok) {
+        const body = await response.json()
+        if (typeof body?.text === "string" && body.text.trim()) generated = body.text.trim()
+      }
+    } catch {
+      // Keep the demo usable when the gateway is offline or unavailable.
+    }
+    if (request.signal.aborted) return
+
+    const assistantMessage = {
+      id: nextId.current++,
+      role: "assistant",
+      answers: {
+        USD: answer(resolved, { ...state, currency: "USD" }),
+        KES: answer(resolved, { ...state, currency: "KES" }),
+      },
+      generated,
+      fallback,
+    } as const
+    inFlight.current = null
+    setMessages((m) => [...m, assistantMessage])
+    setTyping(false)
   }
 
   const clear = () => {
-    if (timer.current) clearTimeout(timer.current)
-    timer.current = null
+    inFlight.current?.abort()
+    inFlight.current = null
     setTyping(false)
     setMessages([])
     setDraft("")
@@ -121,7 +157,15 @@ export function CopilotDrawer() {
                 </p>
               </div>
             ) : (
-              <AnswerBubble key={m.id} answer={m.answer} onGo={go} onAsk={(q) => ask(q)} disabled={typing} />
+              <AnswerBubble
+                key={m.id}
+                answer={m.answers[state.currency]}
+                generated={m.generated}
+                fallback={m.fallback}
+                onGo={go}
+                onAsk={(q) => ask(q)}
+                disabled={typing}
+              />
             ),
           )}
 
@@ -169,6 +213,7 @@ export function CopilotDrawer() {
               onChange={(e) => setDraft(e.target.value)}
               placeholder="Ask about spend, savings or vendors…"
               aria-label="Ask SpendIQ AI"
+              maxLength={500}
             />
             <Button type="submit" size="icon" disabled={!draft.trim() || typing} aria-label="Send">
               <HugeiconsIcon icon={SentIcon} strokeWidth={2} />
@@ -182,20 +227,26 @@ export function CopilotDrawer() {
 
 function AnswerBubble({
   answer,
+  generated,
+  fallback,
   onGo,
   onAsk,
   disabled,
 }: {
   answer: Answer
+  generated: string | null
+  fallback: Fallback
   onGo: (target: AnswerTarget) => void
   onAsk: (question: string) => void
   disabled: boolean
 }) {
+  const { moneyText } = useMoney()
   return (
     <div className="flex gap-2">
       <BrandLogo brand="SpendIQ" size="sm" className="mt-0.5" />
       <div className="min-w-0 flex-1 space-y-2.5">
-        <p className="text-sm leading-relaxed">{answer.headline}</p>
+        {!generated ? <p className="text-xs text-muted-foreground">{FALLBACK_LABEL[fallback]}</p> : null}
+        <p className="text-sm leading-relaxed whitespace-pre-line">{moneyText(generated ?? answer.headline)}</p>
 
         {answer.items.length > 0 ? (
           <div className="divide-y overflow-hidden rounded-lg border">
@@ -208,15 +259,15 @@ function AnswerBubble({
               >
                 <BrandLogo brand={item.brand} size="sm" />
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-medium">{item.name}</span>
-                  {item.detail ? <span className="block truncate text-xs text-muted-foreground">{item.detail}</span> : null}
+                  <span className="block truncate text-sm font-medium">{moneyText(item.name)}</span>
+                  {item.detail ? <span className="block truncate text-xs text-muted-foreground">{moneyText(item.detail)}</span> : null}
                 </span>
                 <span className="shrink-0 text-right">
                   <span className="block font-mono text-sm font-medium text-emerald-600 tabular-nums dark:text-emerald-400">
-                    {item.figure}
+                    {moneyText(item.figure)}
                   </span>
                   {item.subFigure ? (
-                    <span className="block font-mono text-[11px] text-muted-foreground tabular-nums">{item.subFigure}</span>
+                    <span className="block font-mono text-[11px] text-muted-foreground tabular-nums">{moneyText(item.subFigure)}</span>
                   ) : null}
                 </span>
                 <span className="shrink-0 text-xs text-muted-foreground group-hover:text-foreground">Review</span>
@@ -229,13 +280,13 @@ function AnswerBubble({
           <div className="flex flex-col gap-1">
             {answer.suggestions.map((q) => (
               <button
-                key={q}
+                key={moneyText(q)}
                 type="button"
                 disabled={disabled}
                 onClick={() => onAsk(q)}
                 className="rounded-md px-2 py-1 text-left text-sm text-primary hover:bg-muted disabled:opacity-50 dark:text-foreground"
               >
-                {q}
+                {moneyText(q)}
               </button>
             ))}
           </div>
@@ -250,7 +301,7 @@ function AnswerBubble({
                 variant={i === 0 ? "secondary" : "outline"}
                 onClick={() => onGo({ type: "link", href: a.href })}
               >
-                {a.label}
+                {moneyText(a.label)}
                 <HugeiconsIcon icon={ArrowRight01Icon} strokeWidth={2} />
               </Button>
             ))}

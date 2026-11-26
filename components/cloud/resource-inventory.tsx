@@ -2,7 +2,8 @@
 
 import * as React from "react"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { Search01Icon } from "@hugeicons/core-free-icons"
+import { Add01Icon, DatabaseRestoreIcon, Search01Icon } from "@hugeicons/core-free-icons"
+import { toast } from "sonner"
 
 import { BrandLogo } from "@/components/shared/brand-logo"
 import { DataTable, type SpendColumn } from "@/components/shared/data-table"
@@ -12,9 +13,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { CloudProvider, CloudResource, Environment } from "@/lib/data/types"
-import { money } from "@/lib/format"
-import { sum } from "@/lib/store/selectors"
-import { useSpend } from "@/lib/store/spend-store"
+import { sum, workspaceTotal } from "@/lib/store/selectors"
+import { useMoney, useSpend } from "@/lib/store/spend-store"
 import { cn } from "@/lib/utils"
 import { resourceStatus, type ResourceStatus, type StatusFilter } from "./resource-status"
 
@@ -59,7 +59,7 @@ interface InventoryRow {
 /** Null metrics (storage/platform services) sort below every measured value. */
 const metric = (v: number | null) => v ?? -1
 
-const COLUMNS: Array<SpendColumn<InventoryRow>> = [
+const COLUMNS = ({ money }: Pick<ReturnType<typeof useMoney>, "money">): Array<SpendColumn<InventoryRow>> => [
   {
     id: "name",
     header: "Resource",
@@ -153,8 +153,10 @@ const COLUMNS: Array<SpendColumn<InventoryRow>> = [
   },
 ]
 
-export function ResourceInventory() {
-  const { state, openDrawer } = useSpend()
+export function ResourceInventory({ onAddResource }: { onAddResource?: () => void }) {
+  const formats = useMoney()
+  const { money } = formats
+  const { state, openDrawer, resetDemo } = useSpend()
   const [query, setQuery] = React.useState("")
   const [provider, setProvider] = React.useState<string>("all")
   const [env, setEnv] = React.useState<string>("all")
@@ -181,12 +183,12 @@ export function ResourceInventory() {
     setStatus("all")
   }
 
-  const totalCost = sum(rows, (r) => r.resource.monthlyCost)
-  const totalSavings = sum(rows, (r) => (r.status.filter === "flagged" ? r.status.savings : 0))
+  const totalCost = workspaceTotal(state.workspace, sum(rows, (r) => r.resource.monthlyCost))
+  const totalSavings = workspaceTotal(state.workspace, sum(rows, (r) => r.status.filter === "flagged" ? r.status.savings : 0))
 
   const footer: React.ReactNode[] = [
     <span key="label" className="text-xs font-normal text-muted-foreground">
-      Total · {rows.length} resources
+      {state.workspace === "All Subsidiaries" ? "Modeled total" : "Total"} · {rows.length} resources
     </span>,
     null,
     null,
@@ -276,22 +278,49 @@ export function ResourceInventory() {
       <DataTable
         className="text-[13px]"
         caption="Cloud resource inventory"
-        columns={COLUMNS}
+        columns={COLUMNS(formats)}
         rows={rows}
         getRowId={(row) => row.resource.id}
         onRowClick={(row) => openDrawer({ kind: "resource", id: row.resource.id })}
         initialSorting={[{ id: "cost", desc: true }]}
         footer={footer}
         empty={
-          <EmptyState
-            title="No resources match these filters"
-            description="Try a different search term, provider, environment or status."
-            action={
-              <Button variant="outline" size="sm" onClick={clearFilters}>
-                Clear filters
-              </Button>
-            }
-          />
+          state.resources.length === 0 ? (
+            <EmptyState
+              title="No cloud resources yet"
+              description="Add a cloud resource to run right-sizing rules live, or load the NCBA demo dataset."
+              action={
+                <div className="flex flex-wrap items-center justify-center gap-2">
+                  {onAddResource ? (
+                    <Button size="sm" variant="outline" onClick={onAddResource}>
+                      <HugeiconsIcon icon={Add01Icon} strokeWidth={2} />
+                      Add resource
+                    </Button>
+                  ) : null}
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      resetDemo()
+                      toast.success("NCBA demo data loaded")
+                    }}
+                  >
+                    <HugeiconsIcon icon={DatabaseRestoreIcon} strokeWidth={1.8} />
+                    Load demo data
+                  </Button>
+                </div>
+              }
+            />
+          ) : (
+            <EmptyState
+              title="No resources match these filters"
+              description="Try a different search term, provider, environment or status."
+              action={
+                <Button variant="outline" size="sm" onClick={clearFilters}>
+                  Clear filters
+                </Button>
+              }
+            />
+          )
         }
       />
     </SectionCard>

@@ -3,7 +3,7 @@
 import type { ReactNode } from "react"
 
 import type { ChartConfig } from "@/components/ui/chart"
-import { money } from "@/lib/format"
+import type { moneyFormat } from "@/lib/format"
 
 export const CLOUD_COLOR = { light: "#39B3E5", dark: "#39B3E5" }
 export const VENDOR_COLOR = { light: "#38302E", dark: "#B5ABA7" }
@@ -12,18 +12,11 @@ export const AMBER_COLOR = { light: "#f59e0b", dark: "#f59e0b" }
 
 export const CHART_CLASS = "aspect-auto h-[230px] w-full"
 
-/** Compact axis ticks: $12k, $1.2M. */
-export function axisMoney(n: number) {
-  if (Math.abs(n) >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`
-  if (Math.abs(n) >= 1000) return `$${Math.round(n / 1000)}k`
-  return `$${n}`
-}
-
 /**
  * Tooltip row formatter for ChartTooltipContent: swatch, configured label and
- * a full-precision USD value, optionally with a suffix such as "/mo".
+ * a formatted monetary value, optionally with a suffix such as "/mo".
  */
-export function moneyRow(config: ChartConfig, suffix = "", note?: (key: string) => ReactNode) {
+export function moneyRow(money: ReturnType<typeof moneyFormat>["money"], config: ChartConfig, suffix = "", note?: (key: string) => ReactNode) {
   return function MoneyRow(value: unknown, name: unknown, item: { color?: string; payload?: { fill?: string } }) {
     const key = String(name)
     const label = config[key]?.label ?? key

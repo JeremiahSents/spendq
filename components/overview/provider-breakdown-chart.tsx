@@ -7,9 +7,9 @@ import { BrandLogo } from "@/components/shared/brand-logo"
 import { DataLabel, SectionCard } from "@/components/shared/dashboard-ui"
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
 import type { CloudProvider } from "@/lib/data/types"
-import { money, pct } from "@/lib/format"
+import { pct } from "@/lib/format"
 import { spendByProvider } from "@/lib/store/selectors"
-import { useSpend } from "@/lib/store/spend-store"
+import { useMoney, useSpend } from "@/lib/store/spend-store"
 import { cn } from "@/lib/utils"
 
 const CLOUD_PROVIDERS = new Set<string>(["AWS", "Azure", "DigitalOcean", "Vercel", "Neon"] satisfies CloudProvider[])
@@ -67,6 +67,7 @@ function buildSlices(all: { name: string; value: number }[]) {
 }
 
 export function ProviderBreakdownChart() {
+  const { money } = useMoney()
   const { state } = useSpend()
   const all = spendByProvider(state)
   const { total, slices, config } = buildSlices(all)

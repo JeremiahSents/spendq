@@ -4,6 +4,8 @@ import * as React from "react"
 
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { currencySymbol, displayAmount, usdAmount } from "@/lib/format"
+import { useSpend } from "@/lib/store/spend-store"
 import { cn } from "@/lib/utils"
 
 /** Label, control and inline error, matching the purchase-request dialog. */
@@ -59,10 +61,11 @@ export function NumberInput({
   step?: string
   placeholder?: string
 }) {
+  const description = [prefix ? id + "-prefix" : null, suffix ? id + "-suffix" : null].filter(Boolean).join(" ")
   return (
     <div className="relative">
       {prefix ? (
-        <span className="pointer-events-none absolute inset-y-0 left-2.5 flex items-center font-mono text-xs text-muted-foreground">
+        <span id={id + "-prefix"} className="pointer-events-none absolute inset-y-0 left-2.5 flex items-center font-mono text-xs text-muted-foreground">
           {prefix}
         </span>
       ) : null}
@@ -76,15 +79,41 @@ export function NumberInput({
         disabled={disabled}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
-        className={cn("font-mono tabular-nums", prefix && "pl-6", suffix && (suffix.length > 4 ? "pr-15" : suffix.length > 2 ? "pr-11" : "pr-8"))}
+        className={cn("font-mono tabular-nums", prefix && (prefix.length > 1 ? "pl-11" : "pl-6"), suffix && (suffix.length > 4 ? "pr-15" : suffix.length > 2 ? "pr-11" : "pr-8"))}
         aria-invalid={invalid}
+        aria-describedby={description || undefined}
       />
       {suffix ? (
-        <span className="pointer-events-none absolute inset-y-0 right-2.5 flex items-center font-mono text-xs text-muted-foreground">
+        <span id={id + "-suffix"} className="pointer-events-none absolute inset-y-0 right-2.5 flex items-center font-mono text-xs text-muted-foreground">
           {suffix}
         </span>
       ) : null}
     </div>
+  )
+}
+
+/** The form holds USD while the input displays and accepts the selected currency. */
+export function MoneyInput({
+  value,
+  onChange,
+  ...props
+}: Omit<React.ComponentProps<typeof NumberInput>, "prefix">) {
+  const { state: { currency } } = useSpend()
+  const amount = num(value)
+  const shown = currency === "USD" || amount === null
+    ? value
+    : String(Number(displayAmount(amount, currency).toFixed(2)))
+
+  return (
+    <NumberInput
+      {...props}
+      prefix={currencySymbol(currency)}
+      value={shown}
+      onChange={(next) => {
+        const parsed = num(next)
+        onChange(currency === "USD" || parsed === null ? next : String(usdAmount(parsed, currency)))
+      }}
+    />
   )
 }
 

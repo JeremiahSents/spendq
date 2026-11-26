@@ -7,19 +7,19 @@ import { Add01Icon, Calendar03Icon, Invoice01Icon, MoneySavingJarIcon, Store01Ic
 import { AddVendorDialog } from "@/components/forms/add-vendor-dialog"
 import { DataLabel, METRIC_GRID, MetricCard, PageHeader } from "@/components/shared/dashboard-ui"
 import { Button } from "@/components/ui/button"
-import { money, perMonth, perYear } from "@/lib/format"
-import { upcomingRenewals, vendorSummary, sparkSeries } from "@/lib/store/selectors"
-import { useSpend } from "@/lib/store/spend-store"
+import { sparkSeries, sum, upcomingRenewals, vendorSummary, workspaceTotal } from "@/lib/store/selectors"
+import { useMoney, useSpend } from "@/lib/store/spend-store"
 
 import { RenewalTimeline } from "./renewal-timeline"
 import { VendorDirectory } from "./vendor-directory"
 
 export function VendorsView() {
+  const { money, perMonth, perYear } = useMoney()
   const { state } = useSpend()
   const [addOpen, setAddOpen] = React.useState(false)
   const summary = vendorSummary(state)
   const renewals = upcomingRenewals(state, 90)
-  const renewalValue = renewals.reduce((s, r) => s + r.annual, 0)
+  const renewalValue = workspaceTotal(state.workspace, sum(renewals, (renewal) => renewal.annual))
   const flagged = state.recommendations.filter((r) => r.source === "vendor" && r.status === "Pending").length
 
   return (
@@ -86,7 +86,7 @@ export function VendorsView() {
       </div>
 
       <RenewalTimeline />
-      <VendorDirectory />
+      <VendorDirectory onAddVendor={() => setAddOpen(true)} />
     </div>
   )
 }

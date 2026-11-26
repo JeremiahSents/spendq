@@ -4,12 +4,12 @@ import { useState } from "react"
 import { CloudIcon, PiggyBankIcon, Store01Icon, Wallet01Icon } from "@hugeicons/core-free-icons"
 
 import { METRIC_GRID, MetricCard } from "@/components/shared/dashboard-ui"
-import { money, perMonth, perYear } from "@/lib/format"
 import { cloudSummary, monthOverMonth, savings, vendorSummary, sparkSeries } from "@/lib/store/selectors"
-import { useSpend } from "@/lib/store/spend-store"
+import { useMoney, useSpend } from "@/lib/store/spend-store"
 import { cn } from "@/lib/utils"
 
 export function KpiCards() {
+  const { money } = useMoney()
   const { state } = useSpend()
   const cloud = cloudSummary(state)
   const vendor = vendorSummary(state)
@@ -59,6 +59,7 @@ export function KpiCards() {
 
 /** Live one-line "Approved projected" figure. Flashes briefly whenever the approved amount changes. */
 function ApprovedCallout({ monthly, annual }: { monthly: number; annual: number }) {
+  const { perMonth, perYear } = useMoney()
   const [prev, setPrev] = useState(monthly)
   const [pulse, setPulse] = useState(0)
   if (monthly !== prev) {

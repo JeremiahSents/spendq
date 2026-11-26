@@ -14,12 +14,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch"
 import { DEPARTMENTS } from "@/lib/data/seed"
 import type { CloudProvider, Department, Environment } from "@/lib/data/types"
-import { money } from "@/lib/format"
 import { RESOURCE_RULES, type NewResourceInput } from "@/lib/store/create"
-import { useSpend } from "@/lib/store/spend-store"
+import { workspaceIncludesDepartment } from "@/lib/store/selectors"
+import { useMoney, useSpend } from "@/lib/store/spend-store"
 import { cn } from "@/lib/utils"
 
-import { FORM_DIALOG_CLASS, Field, NumberInput, SuggestionChips, num } from "./form-fields"
+import { FORM_DIALOG_CLASS, Field, MoneyInput, NumberInput, SuggestionChips, num } from "./form-fields"
 
 const PROVIDERS: CloudProvider[] = ["AWS", "Azure", "DigitalOcean", "Vercel", "Neon"]
 const ENVIRONMENTS: Environment[] = ["Production", "Staging", "Development"]
@@ -169,7 +169,8 @@ function previewRule(f: FormState): Preview {
 }
 
 export function AddResourceDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
-  const { addResource, openDrawer } = useSpend()
+  const { money } = useMoney()
+  const { state, addResource, openDrawer } = useSpend()
   const [form, setForm] = React.useState<FormState>(EMPTY)
   const [errors, setErrors] = React.useState<Errors>({})
 
@@ -190,9 +191,12 @@ export function AddResourceDialog({ open, onOpenChange }: { open: boolean; onOpe
 
   const preview = previewRule(form)
 
+  const departments = DEPARTMENTS.filter((department) => workspaceIncludesDepartment(state.workspace, department))
+
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     const errs = validate(form)
+    if (form.department && !departments.includes(form.department)) errs.department = "Choose a department in this workspace."
     setErrors(errs)
     if (Object.keys(errs).length > 0) return
     const input: NewResourceInput = {
@@ -240,7 +244,7 @@ export function AddResourceDialog({ open, onOpenChange }: { open: boolean; onOpe
               </DialogDescription>
             </div>
             <div className="flex flex-wrap gap-2">
-              {EXAMPLES.map((ex) => (
+              {EXAMPLES.filter(({ form }) => form.department && workspaceIncludesDepartment(state.workspace, form.department)).map((ex) => (
                 <Button
                   key={ex.label}
                   type="button"
@@ -372,7 +376,7 @@ export function AddResourceDialog({ open, onOpenChange }: { open: boolean; onOpe
                     <SelectValue placeholder="Select department" />
                   </SelectTrigger>
                   <SelectContent>
-                    {DEPARTMENTS.map((d) => (
+                    {departments.map((d) => (
                       <SelectItem key={d} value={d}>
                         {d}
                       </SelectItem>
@@ -438,11 +442,10 @@ export function AddResourceDialog({ open, onOpenChange }: { open: boolean; onOpe
                   />
                 </Field>
                 <Field id="res-cost" label="Monthly cost" error={errors.monthlyCost}>
-                  <NumberInput
+                  <MoneyInput
                     id="res-cost"
                     value={form.monthlyCost}
                     onChange={(v) => set("monthlyCost", v)}
-                    prefix="$"
                     suffix="/mo"
                     invalid={!!errors.monthlyCost}
                   />
@@ -466,6 +469,7 @@ export function AddResourceDialog({ open, onOpenChange }: { open: boolean; onOpe
 }
 
 function RulePreview({ preview }: { preview: Preview }) {
+  const { money } = useMoney()
   const flagged = preview.kind === "flagged"
   return (
     <div

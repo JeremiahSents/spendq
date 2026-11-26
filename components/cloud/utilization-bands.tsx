@@ -5,9 +5,8 @@ import { Bar, BarChart, CartesianGrid, LabelList, XAxis, YAxis } from "recharts"
 
 import { SectionCard } from "@/components/shared/dashboard-ui"
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
-import { money } from "@/lib/format"
-import { sum } from "@/lib/store/selectors"
-import { useSpend } from "@/lib/store/spend-store"
+import { sum, workspaceTotal } from "@/lib/store/selectors"
+import { useMoney, useSpend } from "@/lib/store/spend-store"
 
 const config = {
   low: { label: "Under 20% · idle or oversized", theme: { light: "#DC2626", dark: "#F87171" } },
@@ -23,6 +22,7 @@ const BANDS = [
 
 /** How many resources (and how much spend) sit in each 30-day average CPU band. */
 export function UtilizationBands() {
+  const { money } = useMoney()
   const { state } = useSpend()
   const noMetrics = state.resources.filter((r) => r.cpu === null).length
 
@@ -34,11 +34,11 @@ export function UtilizationBands() {
           band: band.key,
           short: band.short,
           count: items.length,
-          spend: sum(items, (r) => r.monthlyCost),
+          spend: workspaceTotal(state.workspace, sum(items, (r) => r.monthlyCost)),
           fill: `var(--color-${band.key})`,
         }
       })
-  }, [state.resources])
+  }, [state.resources, state.workspace])
 
   return (
     <SectionCard title="Utilization distribution" description="Resources by 30-day average CPU">

@@ -185,7 +185,7 @@ export interface ProcurementAnalysis {
   unit: string
   capacity: number
   unitPrice: number
-  reuse: { source: string; brand?: BrandKey; quantity: number; avoided: number } | null
+  reuse: { resourceId?: string; source: string; brand?: BrandKey; quantity: number; avoided: number } | null
   alternative: { name: string; brand?: BrandKey; unitPrice: number; featureMatch: number } | null
   options: ProcurementOption[]
   recommendedKey: ProcurementOption["key"]
@@ -193,6 +193,7 @@ export interface ProcurementAnalysis {
   reductionPct: number
   budget: { department: Department; budget: number; actual: number; headroom: number; fits: boolean }
   steps: string[]
+  reuseChecked?: boolean
 }
 
 export interface ProcurementRequest {

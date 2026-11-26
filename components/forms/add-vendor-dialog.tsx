@@ -14,12 +14,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch"
 import { DEPARTMENTS } from "@/lib/data/seed"
 import type { BrandKey, Department, VendorKey } from "@/lib/data/types"
-import { money } from "@/lib/format"
 import type { NewVendorInput } from "@/lib/store/create"
-import { useSpend } from "@/lib/store/spend-store"
+import { workspaceIncludesDepartment } from "@/lib/store/selectors"
+import { useMoney, useSpend } from "@/lib/store/spend-store"
 import { cn } from "@/lib/utils"
 
-import { FORM_DIALOG_CLASS, Field, NumberInput, SuggestionChips, num } from "./form-fields"
+import { FORM_DIALOG_CLASS, Field, MoneyInput, NumberInput, SuggestionChips, num } from "./form-fields"
 
 const VENDOR_BRANDS: VendorKey[] = [
   "GitHub",
@@ -178,7 +178,8 @@ function DateInput({ id, value, onChange, invalid }: { id: string; value: string
 }
 
 export function AddVendorDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
-  const { addVendor, openDrawer } = useSpend()
+  const { money } = useMoney()
+  const { state, addVendor, openDrawer } = useSpend()
   const [form, setForm] = React.useState<FormState>(EMPTY)
   const [errors, setErrors] = React.useState<Errors>({})
 
@@ -199,9 +200,12 @@ export function AddVendorDialog({ open, onOpenChange }: { open: boolean; onOpenC
 
   const p = preview(form)
 
+  const departments = DEPARTMENTS.filter((department) => workspaceIncludesDepartment(state.workspace, department))
+
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     const errs = validate(form)
+    if (form.department && !departments.includes(form.department)) errs.department = "Choose a department in this workspace."
     setErrors(errs)
     if (Object.keys(errs).length > 0) return
     const input: NewVendorInput = {
@@ -249,7 +253,7 @@ export function AddVendorDialog({ open, onOpenChange }: { open: boolean; onOpenC
               </DialogDescription>
             </div>
             <div className="flex flex-wrap gap-2">
-              {EXAMPLES.map((ex) => (
+              {EXAMPLES.filter(({ form }) => form.department && workspaceIncludesDepartment(state.workspace, form.department)).map((ex) => (
                 <Button
                   key={ex.label}
                   type="button"
@@ -341,7 +345,7 @@ export function AddVendorDialog({ open, onOpenChange }: { open: boolean; onOpenC
                     <SelectValue placeholder="Select department" />
                   </SelectTrigger>
                   <SelectContent>
-                    {DEPARTMENTS.map((d) => (
+                    {departments.map((d) => (
                       <SelectItem key={d} value={d}>
                         {d}
                       </SelectItem>
@@ -371,11 +375,10 @@ export function AddVendorDialog({ open, onOpenChange }: { open: boolean; onOpenC
                   </Select>
                 </Field>
                 <Field id="ven-price" label="Unit price" error={errors.unitPrice}>
-                  <NumberInput
+                  <MoneyInput
                     id="ven-price"
                     value={form.unitPrice}
                     onChange={(v) => set("unitPrice", v)}
-                    prefix="$"
                     suffix="/mo"
                     invalid={!!errors.unitPrice}
                   />
@@ -468,6 +471,7 @@ export function AddVendorDialog({ open, onOpenChange }: { open: boolean; onOpenC
 }
 
 function LicensePreview({ p, unit }: { p: ReturnType<typeof preview>; unit: string }) {
+  const { money } = useMoney()
   const util = p.utilization
   return (
     <div

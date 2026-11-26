@@ -4,6 +4,7 @@ import * as React from "react"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { CheckmarkCircle02Icon, Loading03Icon, MagicWand01Icon } from "@hugeicons/core-free-icons"
 
+import { MoneyInput } from "@/components/forms/form-fields"
 import { PillarBadge } from "@/components/shared/dashboard-ui"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -14,7 +15,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { DEPARTMENTS } from "@/lib/data/seed"
 import type { Department, RequestCategory } from "@/lib/data/types"
 import { CATALOG, CATEGORY_UNITS } from "@/lib/procurement/engine"
-import { useSpend } from "@/lib/store/spend-store"
+import { workspaceIncludesDepartment } from "@/lib/store/selectors"
+import { useMoney, useSpend } from "@/lib/store/spend-store"
 import { cn } from "@/lib/utils"
 
 const CATEGORIES: RequestCategory[] = ["Cloud Compute", "Database", "Storage", "SaaS Licenses", "AI API", "Observability"]
@@ -108,9 +110,12 @@ export function NewRequestDialog({ open, onOpenChange }: { open: boolean; onOpen
     if (errors[key]) setErrors((e) => ({ ...e, [key]: undefined }))
   }
 
+  const departments = DEPARTMENTS.filter((department) => workspaceIncludesDepartment(state.workspace, department))
+
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     const errs = validate(form)
+    if (form.department && !departments.includes(form.department)) errs.department = "Choose a department in this workspace."
     setErrors(errs)
     if (Object.keys(errs).length > 0) return
     // File the request first so the id exists; the dialog only delays revealing the result.
@@ -189,7 +194,7 @@ export function NewRequestDialog({ open, onOpenChange }: { open: boolean; onOpen
                     <SelectValue placeholder="Select department" />
                   </SelectTrigger>
                   <SelectContent>
-                    {DEPARTMENTS.map((d) => (
+                    {departments.map((d) => (
                       <SelectItem key={d} value={d}>
                         {d}
                       </SelectItem>
@@ -259,25 +264,13 @@ export function NewRequestDialog({ open, onOpenChange }: { open: boolean; onOpen
                 </datalist>
               </Field>
               <Field id="pr-budget" label="Estimated monthly budget" error={errors.budget}>
-                <div className="relative">
-                  <span className="pointer-events-none absolute inset-y-0 left-2.5 flex items-center font-mono text-xs text-muted-foreground">
-                    $
-                  </span>
-                  <Input
-                    id="pr-budget"
-                    type="number"
-                    inputMode="decimal"
-                    min={0}
-                    step="any"
-                    value={form.budget}
-                    onChange={(e) => set("budget", e.target.value)}
-                    className="pr-10 pl-6 font-mono tabular-nums"
-                    aria-invalid={!!errors.budget}
-                  />
-                  <span className="pointer-events-none absolute inset-y-0 right-2.5 flex items-center font-mono text-xs text-muted-foreground">
-                    /mo
-                  </span>
-                </div>
+                <MoneyInput
+                  id="pr-budget"
+                  value={form.budget}
+                  onChange={(value) => set("budget", value)}
+                  suffix="/mo"
+                  invalid={!!errors.budget}
+                />
               </Field>
             </div>
 
@@ -326,6 +319,7 @@ function Field({ id, label, error, children }: { id?: string; label: string; err
 }
 
 function AnalysisProgress({ id, stage, steps, onSkip }: { id: string; stage: number; steps: string[]; onSkip: () => void }) {
+  const { moneyText } = useMoney()
   const done = stage >= STAGES.length
   return (
     <div className="grid gap-4" aria-live="polite">
@@ -367,7 +361,7 @@ function AnalysisProgress({ id, stage, steps, onSkip }: { id: string; stage: num
             {steps.map((s) => (
               <li key={s} className="flex items-start gap-2 font-mono text-xs leading-relaxed">
                 <HugeiconsIcon icon={CheckmarkCircle02Icon} size={14} className="mt-0.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
-                {s}
+                {moneyText(s)}
               </li>
             ))}
           </ul>

@@ -108,6 +108,7 @@ export function analyzeRequest(
     if (donor?.spare) {
       const quantity = Math.min(donor.spare.vcpu, capacity)
       reuse = {
+        resourceId: donor.id,
         source: `${donor.name} (${donor.provider} ${donor.type})`,
         brand: donor.provider,
         quantity,
@@ -205,6 +206,7 @@ export function analyzeRequest(
   return {
     unit,
     capacity,
+    reuseChecked: true,
     unitPrice: round(unitPrice),
     reuse,
     alternative: alternative

@@ -5,8 +5,8 @@ import Link from "next/link"
 import { EmptyState, SectionCard, ToneBadge } from "@/components/shared/dashboard-ui"
 import { Button } from "@/components/ui/button"
 import type { ProcurementRequest, RequestStatus } from "@/lib/data/types"
-import { money, shortDate } from "@/lib/format"
-import { useSpend } from "@/lib/store/spend-store"
+import { shortDate } from "@/lib/format"
+import { useMoney, useSpend } from "@/lib/store/spend-store"
 import { ListDivider, ListRow } from "./list-row"
 
 export const REQUEST_TONE: Record<RequestStatus, "positive" | "warning" | "negative" | "neutral" | "info"> = {
@@ -25,6 +25,7 @@ export function avoidedSpend(r: ProcurementRequest) {
 }
 
 export function RecentRequests() {
+  const { money } = useMoney()
   const { state, openDrawer } = useSpend()
   const requests = state.requests.slice(0, 4)
 
