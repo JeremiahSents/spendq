@@ -56,7 +56,6 @@ export function RecommendationsView() {
     <div className="space-y-5">
       <PageHeader
         title="Recommendations"
-        description="One action queue for cloud, vendor, procurement, contract and invoice savings."
         actions={
           <Button variant="outline" size="sm" onClick={() => setCopilotOpen(true)}>
             <HugeiconsIcon icon={SparklesIcon} strokeWidth={2} />
@@ -68,14 +67,14 @@ export function RecommendationsView() {
       <div className={METRIC_GRID}>
         <MetricCard
           icon={MoneySavingJarIcon}
-          label="Total potential monthly savings"
+          label="Potential savings"
           series={sparkSeries(s.potentialMonthly)}
           value={perMonth(s.potentialMonthly)}
-          hint={<span className="font-mono tabular-nums">{perYear(s.potentialAnnual)} if all pending are approved</span>}
+          hint={<span className="font-mono tabular-nums">{perYear(s.potentialAnnual)}</span>}
         />
         <MetricCard
           icon={CheckmarkCircle02Icon}
-          label="Approved projected savings"
+          label="Approved savings"
           series={sparkSeries(s.approvedMonthly)}
           value={perMonth(s.approvedMonthly)}
           tone="positive"
@@ -96,8 +95,7 @@ export function RecommendationsView() {
                   <HugeiconsIcon icon={InformationCircleIcon} size={13} strokeWidth={2} />
                 </TooltipTrigger>
                 <TooltipContent className="max-w-64">
-                  Projected savings are committed by an approval but not yet realized. They become realized once the
-                  change ships and shows up on the next invoice or cloud bill.
+                  Projected savings are committed by an approval and realized once the change lands on the next bill.
                 </TooltipContent>
               </Tooltip>
             </span>
@@ -105,15 +103,15 @@ export function RecommendationsView() {
         />
         <MetricCard
           icon={Clock01Icon}
-          label="Pending recommendations"
+          label="Pending"
           series={sparkSeries(s.pendingCount)}
           value={String(s.pendingCount)}
           tone={s.pendingCount > 0 ? "warning" : "default"}
-          hint="Awaiting a decision"
+          hint="Awaiting review"
         />
         <MetricCard
           icon={CheckmarkCircle02Icon}
-          label="Completed / approved actions"
+          label="Approved"
           series={sparkSeries(s.approvedCount)}
           value={String(s.approvedCount)}
           hint={<span className="font-mono tabular-nums">{s.dismissedCount} dismissed</span>}

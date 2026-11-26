@@ -25,8 +25,8 @@ export function SavingsBucketChart() {
 
   return (
     <SectionCard
-      title="Potential savings by optimization category"
-      description={`${money(s.potentialMonthly)}/mo pending · ${money(s.approvedMonthly)}/mo approved (projected)`}
+      title="Savings by category"
+      description={`${money(s.potentialMonthly)}/mo pending · ${money(s.approvedMonthly)}/mo approved`}
       action={<DataLabel kind="projected" />}
     >
       <ChartContainer

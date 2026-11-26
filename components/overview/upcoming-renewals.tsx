@@ -20,8 +20,8 @@ export function UpcomingRenewals() {
 
   return (
     <SectionCard
-      title="Upcoming vendor renewals"
-      description={`Next ${WINDOW} days · ${money(annual)} annual contract value`}
+      title="Upcoming renewals"
+      description={`Next ${WINDOW}d · ${money(annual, { compact: true })}/yr`}
       action={
         <Button variant="ghost" size="xs" nativeButton={false} render={<Link href="/vendors" />}>
           View all
@@ -38,8 +38,8 @@ export function UpcomingRenewals() {
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">{vendor.name}</p>
                 <p className="truncate text-xs text-muted-foreground">
-                  {vendor.plan} · renews <span className="font-mono tabular-nums">{shortDate(vendor.renewalDate)}</span>
-                  {vendor.autoRenew ? " · auto-renew" : " · manual renewal"}
+                  {vendor.plan} · <span className="font-mono tabular-nums">{shortDate(vendor.renewalDate)}</span>
+                  {vendor.autoRenew ? " · Auto" : ""}
                 </p>
               </div>
               <div className="shrink-0 text-right">

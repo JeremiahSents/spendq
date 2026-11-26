@@ -24,7 +24,7 @@ export function RenewalTimeline() {
   return (
     <SectionCard
       title="Renewal timeline"
-      description="Next 120 days. Shaded band is the notice window; act before it opens to keep negotiating leverage."
+      description="Next 120 days"
       action={
         <div className="hidden items-center gap-3 text-[11px] text-muted-foreground sm:flex">
           <span className="flex items-center gap-1">

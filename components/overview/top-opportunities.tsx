@@ -19,8 +19,8 @@ export function TopOpportunities() {
 
   return (
     <SectionCard
-      title="Top optimization opportunities"
-      description={`Largest of ${pending} pending recommendations · projected savings`}
+      title="Top opportunities"
+      description={`${pending} pending`}
       action={
         <Button variant="ghost" size="xs" nativeButton={false} render={<Link href="/recommendations" />}>
           View all

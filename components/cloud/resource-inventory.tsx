@@ -209,7 +209,7 @@ export function ResourceInventory({ onAddResource }: { onAddResource?: () => voi
   return (
     <SectionCard
       title="Resource inventory"
-      description={`${rows.length} of ${state.resources.length} resources · click a row to review utilization and the recommendation`}
+      description={`${rows.length} of ${state.resources.length} resources`}
     >
       <div className="flex flex-wrap items-center gap-2 pb-3">
         <div className="relative min-w-52 flex-1 sm:max-w-72">

@@ -12,7 +12,6 @@ import { AddVendorDialog } from "@/components/forms/add-vendor-dialog"
 import { DataLabel, EmptyState, PageHeader } from "@/components/shared/dashboard-ui"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { RANGE_LABEL } from "@/lib/store/selectors"
 import { useSpend } from "@/lib/store/spend-store"
 import { AnomaliesList } from "./anomalies-list"
 import { BudgetChart } from "./budget-chart"
@@ -33,12 +32,8 @@ export function OverviewPage() {
     <>
       <PageHeader
         title="Spend Overview"
-        description="Monitor, optimize, and govern cloud and vendor technology spend."
         actions={
           <>
-            <span className="text-xs text-muted-foreground">
-              {state.workspace} · {RANGE_LABEL[state.range]}
-            </span>
             {!state.blankMode ? <DataLabel kind="simulated" /> : null}
             <AddDataMenu />
           </>

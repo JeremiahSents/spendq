@@ -72,7 +72,7 @@ export function AppSidebar() {
             </span>
             <span className="min-w-0 group-data-[collapsible=icon]:hidden">
               <span className="block font-heading text-sm font-semibold tracking-[-0.01em] text-foreground">SpendIQ</span>
-              <span className="block truncate text-[11px] text-muted-foreground">NCBA Hackathon · Tech &amp; Cloud Ops</span>
+              <span className="block truncate text-[11px] text-muted-foreground">NCBA FinOps</span>
             </span>
           </Link>
           <SidebarCollapseTrigger />

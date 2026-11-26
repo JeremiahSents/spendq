@@ -24,7 +24,6 @@ export function ProcurementView() {
     <div className="space-y-5">
       <PageHeader
         title="Procurement"
-        description="Cost-check every purchase against existing inventory and cheaper alternatives before it's approved."
         actions={
           <Button onClick={() => setDialogOpen(true)}>
             <HugeiconsIcon icon={Add01Icon} strokeWidth={2} />
@@ -34,25 +33,30 @@ export function ProcurementView() {
       />
 
       <div className={METRIC_GRID}>
-        <MetricCard icon={Clock01Icon} label="Pending requests"
-          series={sparkSeries(summary.pending)} value={String(summary.pending)} hint="Pending review or in review" />
+        <MetricCard
+          icon={Clock01Icon}
+          label="Pending"
+          series={sparkSeries(summary.pending)}
+          value={String(summary.pending)}
+          hint="Awaiting decision"
+        />
         <MetricCard
           icon={CheckmarkCircle02Icon}
-          label="Approved requests"
+          label="Approved"
           series={sparkSeries(summary.approved)}
           value={String(summary.approved)}
-          hint="Optimized or as requested"
+          hint="Optimized or standard"
         />
         <MetricCard
           icon={Invoice01Icon}
-          label="Total requested expenditure"
+          label="Total requested"
           series={sparkSeries(summary.requested)}
           value={perMonth(summary.requested)}
           hint={<span className="font-mono tabular-nums">{perYear(summary.requested * 12)}</span>}
         />
         <MetricCard
           icon={PiggyBankIcon}
-          label="Avoided expenditure"
+          label="Avoided spend"
           series={sparkSeries(summary.avoided)}
           value={perMonth(summary.avoided)}
           tone="positive"

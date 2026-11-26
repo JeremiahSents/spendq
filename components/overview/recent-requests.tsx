@@ -31,8 +31,8 @@ export function RecentRequests() {
 
   return (
     <SectionCard
-      title="Recent procurement requests"
-      description={`${state.requests.length} requests on file · avoided spend shown when approved optimized`}
+      title="Recent requests"
+      description={`${state.requests.length} on file`}
       action={
         <Button variant="ghost" size="xs" nativeButton={false} render={<Link href="/procurement" />}>
           View all
@@ -49,12 +49,11 @@ export function RecentRequests() {
               <ListRow key={r.id} label={`Open request ${r.id}`} onOpen={() => openDrawer({ kind: "request", id: r.id })}>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-[11px] text-muted-foreground">{r.id}</span>
+                    <p className="truncate text-sm font-medium">{r.title}</p>
                     <ToneBadge tone={REQUEST_TONE[r.status]}>{r.status}</ToneBadge>
                   </div>
-                  <p className="mt-0.5 truncate text-sm font-medium">{r.title}</p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {r.department} · {r.requester} ·{" "}
+                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                    <span className="font-mono">{r.id}</span> · {r.department} ·{" "}
                     <span className="font-mono tabular-nums">{shortDate(r.submittedAt)}</span>
                   </p>
                 </div>

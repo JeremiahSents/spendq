@@ -3,7 +3,7 @@
 import * as React from "react"
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
 
-import { DataLabel, SectionCard } from "@/components/shared/dashboard-ui"
+import { SectionCard } from "@/components/shared/dashboard-ui"
 import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
 import type { CloudProvider } from "@/lib/data/types"
 import { recSavings, recommendationFor, sum, workspaceTotal } from "@/lib/store/selectors"
@@ -43,8 +43,7 @@ export function CostByProviderChart({ className }: { className?: string }) {
   return (
     <SectionCard
       title="Cost by provider"
-      description="Monthly spend split by what pending recommendations would remove"
-      action={<DataLabel kind="simulated" />}
+      description="Retained spend vs pending savings"
       className={className}
     >
       {data.length === 0 ? (

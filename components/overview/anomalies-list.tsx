@@ -24,7 +24,7 @@ export function AnomaliesList() {
   return (
     <SectionCard
       title="Spending anomalies"
-      description={`${state.anomalies.length} detected this week · ${critical} critical`}
+      description={`${critical} critical · ${state.anomalies.length} this week`}
     >
       {state.anomalies.length === 0 ? (
         <EmptyState title="No anomalies detected" description="Spend is tracking within expected bands." />

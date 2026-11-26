@@ -78,7 +78,7 @@ export function SavingsLedger() {
   return (
     <SectionCard
       title="Savings ledger"
-      description={`${rows.length} approved action${rows.length === 1 ? "" : "s"} · committed, not yet realized`}
+      description={`${rows.length} approved`}
       action={<DataLabel kind="projected" />}
     >
       <DataTable

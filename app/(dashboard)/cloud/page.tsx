@@ -28,11 +28,10 @@ export default function CloudPage() {
   return (
     <>
       <PageHeader
-        title="Cloud Optimization"
-        description="Infrastructure cost, utilization and right-sizing across AWS, Azure, DigitalOcean, Vercel and Neon."
+        title="Cloud"
         actions={
           <>
-            <DataLabel kind="simulated" />
+            {!state.blankMode ? <DataLabel kind="simulated" /> : null}
             <Button onClick={() => setAddOpen(true)}>
               <HugeiconsIcon icon={Add01Icon} strokeWidth={2} />
               Add resource
@@ -45,29 +44,29 @@ export default function CloudPage() {
       <div className={METRIC_GRID}>
         <MetricCard
           icon={CloudIcon}
-          label="Total cloud expenditure"
+          label="Cloud spend"
           series={sparkSeries(summary.total, "cloud")}
           value={perMonth(summary.total)}
-          hint={<span className="font-mono tabular-nums">{perYear(summary.total * 12)} run rate</span>}
+          hint={<span className="font-mono tabular-nums">{perYear(summary.total * 12)}</span>}
         />
         <MetricCard
           icon={ServerStack01Icon}
           label="Active resources"
           series={sparkSeries(summary.active, "cloud")}
           value={String(summary.active)}
-          hint="Across 5 providers and 3 environments"
+          hint="5 providers · 3 envs"
         />
         <MetricCard
           icon={Alert02Icon}
-          label="Underutilized resources"
+          label="Underutilized"
           series={sparkSeries(summary.underutilized, "cloud")}
           value={String(summary.underutilized)}
           tone="warning"
-          hint={`${Math.round((summary.underutilized / Math.max(1, summary.active)) * 100)}% of inventory flagged`}
+          hint={`${Math.round((summary.underutilized / Math.max(1, summary.active)) * 100)}% flagged`}
         />
         <MetricCard
           icon={MoneySavingJarIcon}
-          label="Potential cloud savings"
+          label="Potential savings"
           series={sparkSeries(summary.potential, "cloud")}
           value={`${money(summary.potential)}/mo`}
           tone="positive"

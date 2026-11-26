@@ -23,7 +23,7 @@ export const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
     label: "Workspace",
     items: [
       { href: "/", label: "Overview", icon: DashboardSquare01Icon },
-      { href: "/cloud", label: "Cloud Optimization", icon: CloudIcon },
+      { href: "/cloud", label: "Cloud", icon: CloudIcon },
       { href: "/vendors", label: "Vendors", icon: Store01Icon },
       { href: "/procurement", label: "Procurement", icon: ShoppingCart01Icon },
       { href: "/recommendations", label: "Recommendations", icon: AiIdeaIcon, badge: "pending" },

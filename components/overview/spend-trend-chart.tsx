@@ -2,7 +2,7 @@
 
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
 
-import { ChangePill, DataLabel, SectionCard } from "@/components/shared/dashboard-ui"
+import { ChangePill, SectionCard } from "@/components/shared/dashboard-ui"
 import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
 import { RANGE_LABEL, monthOverMonth, spendTrend } from "@/lib/store/selectors"
 import { useMoney, useSpend } from "@/lib/store/spend-store"
@@ -33,8 +33,7 @@ export function SpendTrendChart() {
   return (
     <SectionCard
       title={`Expenditure over time · ${RANGE_LABEL[state.range]}`}
-      description={`${data.length} months shown · ${money(total)} cumulative · Nov ${money(latest.cloud + latest.vendor)}`}
-      action={<DataLabel kind="simulated" />}
+      description={`${data.length} months · ${money(total, { compact: true })} cumulative`}
     >
       <ChartContainer config={config} className={`${CHART_CLASS} min-h-[230px] flex-1`}>
         <AreaChart data={data} margin={{ left: 0, right: 8, top: 8 }}>

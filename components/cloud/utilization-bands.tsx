@@ -41,7 +41,7 @@ export function UtilizationBands() {
   }, [state.resources, state.workspace])
 
   return (
-    <SectionCard title="Utilization distribution" description="Resources by 30-day average CPU">
+    <SectionCard title="CPU utilization" description="30-day average">
       <ChartContainer config={config} className="aspect-auto h-40 w-full">
         <BarChart data={data} layout="vertical" margin={{ left: 0, right: 28, top: 0, bottom: 0 }} barSize={14}>
           <CartesianGrid horizontal={false} />
@@ -73,8 +73,7 @@ export function UtilizationBands() {
         </BarChart>
       </ChartContainer>
       <p className="mt-2 border-t pt-2 text-xs text-muted-foreground">
-        <span className="font-mono tabular-nums">{noMetrics}</span> storage and platform services report no compute
-        metrics and are assessed on access patterns instead.
+        <span className="font-mono tabular-nums">{noMetrics}</span> storage/platform services without CPU metrics.
       </p>
     </SectionCard>
   )

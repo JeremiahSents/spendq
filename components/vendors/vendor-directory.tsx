@@ -192,7 +192,7 @@ export function VendorDirectory({ onAddVendor }: { onAddVendor?: () => void }) {
   return (
     <SectionCard
       title="Vendor directory"
-      description={`${rows.length} of ${state.vendors.length} vendors · click a row for contract, utilization and alternatives`}
+      description={`${rows.length} of ${state.vendors.length} vendors`}
     >
       <div className="flex flex-wrap items-center gap-2 pb-3">
         <div className="relative min-w-48 flex-1 sm:max-w-xs">

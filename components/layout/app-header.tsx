@@ -1,18 +1,9 @@
 "use client"
 
-import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { Briefcase01Icon, Calendar03Icon, LayoutAlignRightIcon, SparklesIcon } from "@hugeicons/core-free-icons"
 
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useSidebar } from "@/components/ui/sidebar"
@@ -43,17 +34,7 @@ export function AppHeader() {
         </Button>
       ) : null}
 
-      <Breadcrumb className="min-w-0">
-        <BreadcrumbList className="flex-nowrap">
-          <BreadcrumbItem className="hidden sm:inline-flex">
-            <BreadcrumbLink render={<Link href="/" />}>SpendIQ</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator className="hidden sm:inline-flex" />
-          <BreadcrumbItem className="min-w-0">
-            <BreadcrumbPage className="truncate font-medium">{pageTitle(pathname)}</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+      <span className="min-w-0 truncate text-sm font-medium text-foreground">{pageTitle(pathname)}</span>
 
       <div className="ml-auto flex items-center gap-1.5">
         <Select

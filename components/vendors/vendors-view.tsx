@@ -26,10 +26,9 @@ export function VendorsView() {
     <div className="space-y-4">
       <PageHeader
         title="Vendors"
-        description="SaaS, AI and enterprise software contracts, license utilization and renewals."
         actions={
           <div className="flex items-center gap-2">
-            <DataLabel kind="simulated" />
+            {!state.blankMode ? <DataLabel kind="simulated" /> : null}
             <Button size="sm" onClick={() => setAddOpen(true)}>
               <HugeiconsIcon icon={Add01Icon} strokeWidth={2} data-icon="inline-start" />
               Add vendor
@@ -42,7 +41,7 @@ export function VendorsView() {
       <div className={METRIC_GRID}>
         <MetricCard
           icon={Invoice01Icon}
-          label="Total vendor expenditure"
+          label="Vendor spend"
           series={sparkSeries(summary.total, "vendor")}
           value={perMonth(summary.total)}
           hint={<span className="font-mono tabular-nums">{perYear(summary.total * 12)}</span>}
@@ -56,23 +55,23 @@ export function VendorsView() {
         />
         <MetricCard
           icon={Calendar03Icon}
-          label="Upcoming renewals (90 days)"
+          label="Renewals (90d)"
           series={sparkSeries(summary.renewals90, "vendor")}
           value={String(summary.renewals90)}
           tone={summary.renewals90 > 0 ? "warning" : "default"}
           hint={
             renewals.length > 0 ? (
               <span className="font-mono tabular-nums">
-                {money(renewalValue)}/yr · next in {renewals[0].days}d
+                {money(renewalValue, { compact: true })}/yr · next in {renewals[0].days}d
               </span>
             ) : (
-              "None in 90 days"
+              "None in 90d"
             )
           }
         />
         <MetricCard
           icon={MoneySavingJarIcon}
-          label="Potential vendor savings"
+          label="Potential savings"
           series={sparkSeries(summary.potential, "vendor")}
           value={perMonth(summary.potential)}
           tone={summary.potential > 0 ? "positive" : "default"}

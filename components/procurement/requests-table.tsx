@@ -134,7 +134,6 @@ export function RequestsTable({ onNewRequest }: { onNewRequest: () => void }) {
   return (
     <SectionCard
       title="Purchase requests"
-      description="Each request is analyzed against live inventory and the benchmark price book the moment it is filed."
       action={
         <Tabs value={filter} onValueChange={(v) => setFilter(v as Filter)}>
           <TabsList>

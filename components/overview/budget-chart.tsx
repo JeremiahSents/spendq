@@ -2,7 +2,7 @@
 
 import { Bar, BarChart, CartesianGrid, Cell, XAxis, YAxis } from "recharts"
 
-import { DataLabel, SectionCard } from "@/components/shared/dashboard-ui"
+import { SectionCard } from "@/components/shared/dashboard-ui"
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
 import { signedPct } from "@/lib/format"
 import { budgetVsActual } from "@/lib/store/selectors"
@@ -31,20 +31,17 @@ export function BudgetChart() {
 
   return (
     <SectionCard
-      title="Budget vs actual by department"
+      title="Budget vs actual"
       description={
         overCount > 0
-          ? `${overCount} of ${data.length} departments over their monthly budget`
-          : "All departments within monthly budget"
+          ? `${overCount} of ${data.length} over budget`
+          : "All within budget"
       }
       action={
-        <div className="flex items-center gap-3">
-          <div className="hidden items-center gap-3 text-[11px] text-muted-foreground sm:flex">
-            <Swatch className="bg-[#d6d3d1] dark:bg-[#57534e]" label="Budget" />
-            <Swatch className="bg-[#39B3E5]" label="Actual" />
-            <Swatch className="bg-destructive" label="Over" />
-          </div>
-          <DataLabel kind="simulated" />
+        <div className="hidden items-center gap-3 text-[11px] text-muted-foreground sm:flex">
+          <Swatch className="bg-[#d6d3d1] dark:bg-[#57534e]" label="Budget" />
+          <Swatch className="bg-[#39B3E5]" label="Actual" />
+          <Swatch className="bg-destructive" label="Over" />
         </div>
       }
     >
