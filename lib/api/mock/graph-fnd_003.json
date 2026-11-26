@@ -1,0 +1,184 @@
+{
+  "nodes": [
+    {
+      "id": "ven_atlassian_1",
+      "position": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "data": {
+        "kind": "vendor",
+        "label": "Atlassian",
+        "sublabel": "Atlassian Pty Ltd",
+        "highlight": false
+      }
+    },
+    {
+      "id": "con_jira_it",
+      "position": {
+        "x": 280.0,
+        "y": 0.0
+      },
+      "data": {
+        "kind": "contract",
+        "label": "Jira Software Cloud Standard",
+        "sublabel": "USD 7.75 / seat/month",
+        "highlight": true
+      }
+    },
+    {
+      "id": "dep_it_ke",
+      "position": {
+        "x": 560.0,
+        "y": 0.0
+      },
+      "data": {
+        "kind": "department",
+        "label": "IT",
+        "sublabel": "owner",
+        "highlight": false
+      }
+    },
+    {
+      "id": "lic_jira_it",
+      "position": {
+        "x": 560.0,
+        "y": 110.0
+      },
+      "data": {
+        "kind": "licence",
+        "label": "Jira Software",
+        "sublabel": "400 seats paid",
+        "highlight": false
+      }
+    },
+    {
+      "id": "usage_lic_jira_it",
+      "position": {
+        "x": 840.0,
+        "y": 0.0
+      },
+      "data": {
+        "kind": "usage",
+        "label": "353 active in 90 days",
+        "sublabel": "88% used",
+        "highlight": false
+      }
+    },
+    {
+      "id": "ven_atlassian_2",
+      "position": {
+        "x": 0.0,
+        "y": 110.0
+      },
+      "data": {
+        "kind": "vendor",
+        "label": "Atlassian",
+        "sublabel": "ATLASSIAN PTY. LIMITED",
+        "highlight": false
+      }
+    },
+    {
+      "id": "con_jira_dig",
+      "position": {
+        "x": 280.0,
+        "y": 110.0
+      },
+      "data": {
+        "kind": "contract",
+        "label": "Jira Software Cloud (team plan)",
+        "sublabel": "USD 8.60 / seat/month",
+        "highlight": true
+      }
+    },
+    {
+      "id": "dep_digital_ke",
+      "position": {
+        "x": 560.0,
+        "y": 220.0
+      },
+      "data": {
+        "kind": "department",
+        "label": "Digital Banking",
+        "sublabel": "owner",
+        "highlight": false
+      }
+    },
+    {
+      "id": "lic_jira_dig",
+      "position": {
+        "x": 560.0,
+        "y": 330.0
+      },
+      "data": {
+        "kind": "licence",
+        "label": "Jira Software",
+        "sublabel": "120 seats paid",
+        "highlight": false
+      }
+    },
+    {
+      "id": "usage_lic_jira_dig",
+      "position": {
+        "x": 840.0,
+        "y": 110.0
+      },
+      "data": {
+        "kind": "usage",
+        "label": "102 active in 90 days",
+        "sublabel": "85% used",
+        "highlight": false
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "ven_atlassian_1->con_jira_it",
+      "source": "ven_atlassian_1",
+      "target": "con_jira_it",
+      "label": null
+    },
+    {
+      "id": "con_jira_it->dep_it_ke",
+      "source": "con_jira_it",
+      "target": "dep_it_ke",
+      "label": "owned by"
+    },
+    {
+      "id": "con_jira_it->lic_jira_it",
+      "source": "con_jira_it",
+      "target": "lic_jira_it",
+      "label": null
+    },
+    {
+      "id": "lic_jira_it->usage_lic_jira_it",
+      "source": "lic_jira_it",
+      "target": "usage_lic_jira_it",
+      "label": null
+    },
+    {
+      "id": "ven_atlassian_2->con_jira_dig",
+      "source": "ven_atlassian_2",
+      "target": "con_jira_dig",
+      "label": null
+    },
+    {
+      "id": "con_jira_dig->dep_digital_ke",
+      "source": "con_jira_dig",
+      "target": "dep_digital_ke",
+      "label": "owned by"
+    },
+    {
+      "id": "con_jira_dig->lic_jira_dig",
+      "source": "con_jira_dig",
+      "target": "lic_jira_dig",
+      "label": null
+    },
+    {
+      "id": "lic_jira_dig->usage_lic_jira_dig",
+      "source": "lic_jira_dig",
+      "target": "usage_lic_jira_dig",
+      "label": null
+    }
+  ]
+}

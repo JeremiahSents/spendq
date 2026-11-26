@@ -1,0 +1,321 @@
+[
+  {
+    "id": "fnd_001",
+    "type": "unused_licence",
+    "title": "204 of 300 Zoom seats unused in the last 90 days",
+    "explanation": "Marketing pays for 300 Zoom Business seats. Only 96 people signed in in the last 90 days, and 41 assigned users never signed in. Cutting to active users saves KES 4,736,880 a year.",
+    "amount_at_issue_kes": 4736880.0,
+    "est_saving_kes": 4736880.0,
+    "saving_basis": "annual",
+    "confidence": 0.9,
+    "status": "open",
+    "department_id": "dep_marketing_ke",
+    "department_name": "Marketing",
+    "vendor_ids": [
+      "ven_zoom"
+    ],
+    "vendor_names": [
+      "Zoom Video Communications"
+    ],
+    "contract_ids": [
+      "con_zoom_mkt"
+    ],
+    "invoice_ids": [],
+    "licence_ids": [
+      "lic_zoom_mkt"
+    ],
+    "related_finding_ids": [
+      "fnd_002",
+      "fnd_007"
+    ],
+    "evidence": {
+      "seats_paid": 300,
+      "seats_assigned": 262,
+      "seats_active_90d": 96,
+      "never_signed_in": 41
+    },
+    "detected_at": "2026-11-30T05:00:00Z"
+  },
+  {
+    "id": "fnd_002",
+    "type": "vendor_overlap",
+    "title": "Zoom duplicates video conferencing already paid for in Microsoft 365",
+    "explanation": "Microsoft 365 E3 enterprise agreement (1700 seats) already covers video conferencing. The 96 active Zoom Business licences users could move across, saving KES 2,229,120 a year on top of the unused seats.",
+    "amount_at_issue_kes": 6966000.0,
+    "est_saving_kes": 2229120.0,
+    "saving_basis": "annual",
+    "confidence": 0.7,
+    "status": "open",
+    "department_id": "dep_marketing_ke",
+    "department_name": "Marketing",
+    "vendor_ids": [
+      "ven_zoom",
+      "ven_microsoft"
+    ],
+    "vendor_names": [
+      "Zoom Video Communications",
+      "Microsoft"
+    ],
+    "contract_ids": [
+      "con_zoom_mkt",
+      "con_m365_ke"
+    ],
+    "invoice_ids": [],
+    "licence_ids": [
+      "lic_zoom_mkt",
+      "lic_m365_ke"
+    ],
+    "related_finding_ids": [
+      "fnd_001",
+      "fnd_007"
+    ],
+    "evidence": {
+      "shared_capability": [
+        "video_conferencing"
+      ],
+      "tools": [
+        "Zoom Business licences",
+        "Microsoft 365 E3 enterprise agreement"
+      ],
+      "narrow_tool_active_users": 96
+    },
+    "detected_at": "2026-11-30T05:00:00Z"
+  },
+  {
+    "id": "fnd_005",
+    "type": "duplicate_invoice",
+    "title": "Liquid August invoice billed twice",
+    "explanation": "Invoices LIQU-2608-1183 and LIQU-2608-1184 carry the same amount (KES 1,450,000) 3 days apart. One should be blocked or refunded.",
+    "amount_at_issue_kes": 1450000.0,
+    "est_saving_kes": 1450000.0,
+    "saving_basis": "one_time",
+    "confidence": 0.97,
+    "status": "open",
+    "department_id": "dep_it_ke",
+    "department_name": "IT",
+    "vendor_ids": [
+      "ven_liquid"
+    ],
+    "vendor_names": [
+      "Liquid Intelligent Technologies"
+    ],
+    "contract_ids": [
+      "con_liquid"
+    ],
+    "invoice_ids": [
+      "inv_0152",
+      "inv_0153"
+    ],
+    "licence_ids": [],
+    "related_finding_ids": [],
+    "evidence": {
+      "invoice_numbers": [
+        "LIQU-2608-1183",
+        "LIQU-2608-1184"
+      ],
+      "days_apart": 3
+    },
+    "detected_at": "2026-11-30T05:00:00Z"
+  },
+  {
+    "id": "fnd_004",
+    "type": "overbilling",
+    "title": "Salesforce.com billed above contract rate for 6 months",
+    "explanation": "The contract fixes Sales Cloud Enterprise at USD 165 per seat per month. Since June 2026, invoices charge USD 180. The overcharge so far is USD 7,200 (KES 928,800), recoverable as a credit note.",
+    "amount_at_issue_kes": 928800.0,
+    "est_saving_kes": 928800.0,
+    "saving_basis": "one_time",
+    "confidence": 0.95,
+    "status": "open",
+    "department_id": "dep_corporate_ke",
+    "department_name": "Corporate Banking",
+    "vendor_ids": [
+      "ven_salesforce"
+    ],
+    "vendor_names": [
+      "Salesforce.com"
+    ],
+    "contract_ids": [
+      "con_sfdc"
+    ],
+    "invoice_ids": [
+      "inv_0111",
+      "inv_0128",
+      "inv_0146",
+      "inv_0164",
+      "inv_0181",
+      "inv_0199"
+    ],
+    "licence_ids": [],
+    "related_finding_ids": [],
+    "evidence": {
+      "contract_unit_price": 165.0,
+      "invoiced_unit_price": 180.0,
+      "currency": "USD",
+      "months_affected": 6,
+      "overcharge": 7200.0,
+      "contract_clause": "Unit price is fixed at USD 165 per user per month for the initial term."
+    },
+    "detected_at": "2026-11-30T05:00:00Z"
+  },
+  {
+    "id": "fnd_003",
+    "type": "duplicate_subscription",
+    "title": "Jira bought twice: IT and Digital Banking hold separate contracts",
+    "explanation": "'ATLASSIAN PTY. LIMITED' and 'Atlassian Pty Ltd' are the same company. Digital Banking pays USD 8.6/seat while IT pays USD 7.75/seat, and 45 people hold a seat on both. Moving them onto one contract saves KES 745,749 a year.",
+    "amount_at_issue_kes": 1597536.0,
+    "est_saving_kes": 745749.0,
+    "saving_basis": "annual",
+    "confidence": 0.85,
+    "status": "open",
+    "department_id": "dep_digital_ke",
+    "department_name": "Digital Banking",
+    "vendor_ids": [
+      "ven_atlassian_1",
+      "ven_atlassian_2"
+    ],
+    "vendor_names": [
+      "Atlassian"
+    ],
+    "contract_ids": [
+      "con_jira_it",
+      "con_jira_dig"
+    ],
+    "invoice_ids": [],
+    "licence_ids": [
+      "lic_jira_it",
+      "lic_jira_dig"
+    ],
+    "related_finding_ids": [],
+    "evidence": {
+      "shared_users": 45,
+      "unit_price": {
+        "con_jira_it": 7.75,
+        "con_jira_dig": 8.6
+      },
+      "seats_paid": {
+        "con_jira_it": 400,
+        "con_jira_dig": 120
+      }
+    },
+    "detected_at": "2026-11-30T05:00:00Z"
+  },
+  {
+    "id": "fnd_007",
+    "type": "renewal_due",
+    "title": "Zoom auto-renews on 09 Jan 2027; notice due by 10 Dec",
+    "explanation": "The Zoom Business licences contract renews automatically unless notice is given 30 days before 09 January 2027. That leaves 10 days to act on the open findings for this contract.",
+    "amount_at_issue_kes": 6966000.0,
+    "est_saving_kes": 0.0,
+    "saving_basis": "none",
+    "confidence": 1.0,
+    "status": "open",
+    "department_id": "dep_marketing_ke",
+    "department_name": "Marketing",
+    "vendor_ids": [
+      "ven_zoom"
+    ],
+    "vendor_names": [
+      "Zoom Video Communications"
+    ],
+    "contract_ids": [
+      "con_zoom_mkt"
+    ],
+    "invoice_ids": [],
+    "licence_ids": [],
+    "related_finding_ids": [
+      "fnd_001",
+      "fnd_002"
+    ],
+    "evidence": {
+      "end_date": "2027-01-09",
+      "notice_deadline": "2026-12-10",
+      "days_to_notice_deadline": 10,
+      "auto_renew": true
+    },
+    "detected_at": "2026-11-30T05:00:00Z"
+  },
+  {
+    "id": "fnd_006",
+    "type": "anomaly",
+    "title": "AWS bill 3.0x normal in September 2026",
+    "explanation": "AWS usually bills about USD 20,430 a month. September came to USD 61,400, KES 5,285,158 above normal. The cause is unknown until someone checks the usage report.",
+    "amount_at_issue_kes": 5285158.38,
+    "est_saving_kes": 0.0,
+    "saving_basis": "none",
+    "confidence": 0.6,
+    "status": "open",
+    "department_id": "dep_digital_ke",
+    "department_name": "Digital Banking",
+    "vendor_ids": [
+      "ven_aws"
+    ],
+    "vendor_names": [
+      "Amazon Web Services"
+    ],
+    "contract_ids": [
+      "con_aws"
+    ],
+    "invoice_ids": [
+      "inv_0167"
+    ],
+    "licence_ids": [],
+    "related_finding_ids": [],
+    "evidence": {
+      "monthly": [
+        {
+          "month": "2025-12",
+          "amount": 21158.32
+        },
+        {
+          "month": "2026-01",
+          "amount": 21318.97
+        },
+        {
+          "month": "2026-02",
+          "amount": 19013.46
+        },
+        {
+          "month": "2026-03",
+          "amount": 20629.46
+        },
+        {
+          "month": "2026-04",
+          "amount": 19629.28
+        },
+        {
+          "month": "2026-05",
+          "amount": 20166.88
+        },
+        {
+          "month": "2026-06",
+          "amount": 20929.99
+        },
+        {
+          "month": "2026-07",
+          "amount": 20356.74
+        },
+        {
+          "month": "2026-08",
+          "amount": 20429.78
+        },
+        {
+          "month": "2026-09",
+          "amount": 61400.0
+        },
+        {
+          "month": "2026-10",
+          "amount": 18968.75
+        },
+        {
+          "month": "2026-11",
+          "amount": 20985.58
+        }
+      ],
+      "currency": "USD",
+      "baseline": 20429.78,
+      "robust_z": 50.8
+    },
+    "detected_at": "2026-11-30T05:00:00Z"
+  }
+]

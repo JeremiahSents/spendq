@@ -1,0 +1,30 @@
+{
+  "approved_kes": 2378800.0,
+  "realised_kes": 2378800.0,
+  "entries": [
+    {
+      "action_id": "act_005",
+      "finding_id": "fnd_005",
+      "finding_title": "Liquid August invoice billed twice",
+      "kind": "block_duplicate_payment",
+      "status": "done",
+      "approver": "Accounts Payable Manager",
+      "decided_at": "2026-11-26T12:44:23.017256Z",
+      "est_saving_kes": 1450000.0,
+      "realised_saving_kes": 1450000.0,
+      "saving_basis": "one_time"
+    },
+    {
+      "action_id": "act_004",
+      "finding_id": "fnd_004",
+      "finding_title": "Salesforce.com billed above contract rate for 6 months",
+      "kind": "dispute_invoice",
+      "status": "done",
+      "approver": "Accounts Payable Manager",
+      "decided_at": "2026-11-26T12:44:23.005830Z",
+      "est_saving_kes": 928800.0,
+      "realised_saving_kes": 928800.0,
+      "saving_basis": "one_time"
+    }
+  ]
+}

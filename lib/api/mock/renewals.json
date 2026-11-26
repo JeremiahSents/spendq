@@ -1,0 +1,48 @@
+[
+  {
+    "contract_id": "con_zoom_mkt",
+    "title": "Zoom Business licences",
+    "vendor_name": "Zoom Video Communications",
+    "department_name": "Marketing",
+    "end_date": "2027-01-09",
+    "notice_deadline": "2026-12-10",
+    "days_to_notice_deadline": 10,
+    "days_to_end": 40,
+    "auto_renew": true,
+    "annual_value_kes": 6966000.0,
+    "utilisation": 0.32,
+    "finding_ids": [
+      "fnd_001",
+      "fnd_002",
+      "fnd_007"
+    ]
+  },
+  {
+    "contract_id": "con_docusign",
+    "title": "DocuSign Business Pro",
+    "vendor_name": "DocuSign",
+    "department_name": "Legal & Compliance",
+    "end_date": "2027-02-14",
+    "notice_deadline": "2026-12-16",
+    "days_to_notice_deadline": 16,
+    "days_to_end": 76,
+    "auto_renew": true,
+    "annual_value_kes": 3715200.0,
+    "utilisation": 0.883,
+    "finding_ids": []
+  },
+  {
+    "contract_id": "con_adobe",
+    "title": "Creative Cloud for teams",
+    "vendor_name": "Adobe",
+    "department_name": "Marketing",
+    "end_date": "2027-02-28",
+    "notice_deadline": "2027-01-29",
+    "days_to_notice_deadline": 60,
+    "days_to_end": 90,
+    "auto_renew": true,
+    "annual_value_kes": 5263200.0,
+    "utilisation": 0.875,
+    "finding_ids": []
+  }
+]

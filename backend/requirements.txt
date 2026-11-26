@@ -1,0 +1,7 @@
+# Works on Python 3.10+. Tested with fastapi 0.165 / sqlmodel 0.0.50 (Python 3.13)
+# and the newest versions available on Python 3.10.
+fastapi>=0.115
+sqlmodel>=0.0.22
+rapidfuzz>=3.9
+uvicorn[standard]>=0.30
+psycopg[binary]>=3.2  # Postgres driver for Neon
