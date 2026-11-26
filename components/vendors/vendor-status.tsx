@@ -1,0 +1,68 @@
+import { ToneBadge } from "@/components/shared/dashboard-ui"
+import type { RecCategory, Recommendation } from "@/lib/data/types"
+import { cn } from "@/lib/utils"
+
+/** Short verb phrases for the directory's status column. */
+export const ACTION_LABEL: Partial<Record<RecCategory, string>> = {
+  "License reclaim": "Reclaim licenses",
+  "Seat reduction": "Reduce seats",
+  "Tier downgrade": "Downgrade tier",
+  Renegotiation: "Renegotiate",
+  Consolidation: "Consolidate",
+  "Vendor switch": "Switch vendor",
+}
+
+export type VendorStatus = { label: string; tone: "positive" | "warning" | "neutral" }
+
+export function vendorStatus(rec: Recommendation | undefined): VendorStatus {
+  if (!rec) return { label: "Optimized", tone: "positive" }
+  if (rec.status === "Approved") return { label: "Action approved", tone: "positive" }
+  if (rec.status === "Dismissed") return { label: "Dismissed", tone: "neutral" }
+  return { label: ACTION_LABEL[rec.category] ?? rec.category, tone: "warning" }
+}
+
+export function VendorStatusBadge({ rec }: { rec: Recommendation | undefined }) {
+  const s = vendorStatus(rec)
+  return <ToneBadge tone={s.tone}>{s.label}</ToneBadge>
+}
+
+/** License utilization tone: red under 60%, amber under 85%, green otherwise. */
+export function utilTone(pct: number) {
+  return pct < 60 ? "negative" : pct < 85 ? "warning" : "positive"
+}
+
+export function LicenseBar({ value, className }: { value: number; className?: string }) {
+  const tone = utilTone(value)
+  return (
+    <div className={cn("flex min-w-24 items-center gap-2", className)}>
+      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+        <div
+          className={cn(
+            "h-full rounded-full",
+            tone === "negative" ? "bg-destructive" : tone === "warning" ? "bg-amber-500" : "bg-emerald-500",
+          )}
+          style={{ width: `${Math.max(2, Math.min(100, value))}%` }}
+        />
+      </div>
+      <span
+        className={cn(
+          "w-9 text-right font-mono text-xs tabular-nums",
+          tone === "negative" && "text-destructive",
+          tone === "warning" && "text-amber-700 dark:text-amber-400",
+        )}
+      >
+        {value}%
+      </span>
+    </div>
+  )
+}
+
+/** Days-remaining chip: red under 30, amber under 90. */
+export function DaysBadge({ days }: { days: number }) {
+  const tone = days < 0 ? "neutral" : days < 30 ? "negative" : days < 90 ? "warning" : "neutral"
+  return (
+    <ToneBadge tone={tone}>
+      <span className="font-mono tabular-nums">{days < 0 ? `${Math.abs(days)}d ago` : `${days}d`}</span>
+    </ToneBadge>
+  )
+}
