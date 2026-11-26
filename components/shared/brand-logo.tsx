@@ -50,6 +50,9 @@ const TILE: Record<BrandKey | "SpendIQ", string> = {
   "New Relic": "bg-[#1CE783] text-[#0B1E29]",
   Grafana: "bg-[#F46800] text-white",
   Confluence: "bg-[#1868DB] text-white",
+  Salesforce: "bg-[#00A1E0] text-white",
+  Jira: "bg-[#0052CC] text-white",
+  Liquid: "bg-[#1B1464] text-white",
   SpendIQ: "bg-primary text-primary-foreground",
 }
 
@@ -91,6 +94,16 @@ function CustomMark({ brand }: { brand: BrandKey | "SpendIQ" }) {
       return <span className="text-[0.6em] font-bold">G</span>
     case "Confluence":
       return <span className="text-[0.6em] font-bold">C</span>
+    case "Salesforce":
+      return <span className="text-[0.5em] font-bold">SF</span>
+    case "Jira":
+      return (
+        <svg viewBox="0 0 24 24" className="size-[58%]" fill="currentColor" aria-hidden>
+          <path d="M21.6 11.4 12.6 2.4 12 1.8 3 10.8l-.6.6a.8.8 0 0 0 0 1.2l6.2 6.2L12 22.2l9-9 .6-.6a.8.8 0 0 0 0-1.2ZM12 15.1 8.9 12 12 8.9l3.1 3.1L12 15.1Z" />
+        </svg>
+      )
+    case "Liquid":
+      return <span className="text-[0.6em] font-bold">L</span>
     case "SpendIQ":
       return <span className="text-[0.55em] font-bold">IQ</span>
     default:

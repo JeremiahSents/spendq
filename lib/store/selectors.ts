@@ -134,6 +134,7 @@ export const SAVINGS_BUCKETS: SavingsBucket[] = [
   "License reclaim",
   "Vendor switch",
   "Infrastructure reuse",
+  "Billing errors",
 ]
 
 export function savingsByBucket(s: SpendState) {

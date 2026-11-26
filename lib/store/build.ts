@@ -23,6 +23,11 @@ export const PILLAR_BY_CATEGORY: Record<RecCategory, Pillar> = {
   Consolidation: "Eliminate",
   "Vendor switch": "Innovate",
   "Infrastructure reuse": "Reuse",
+  Overbilling: "Automate",
+  "Duplicate invoice": "Automate",
+  "Duplicate subscription": "Eliminate",
+  "Spend anomaly": "Automate",
+  "Renewal notice": "Innovate",
 }
 
 export const BUCKET_BY_CATEGORY: Record<RecCategory, SavingsBucket> = {
@@ -38,6 +43,11 @@ export const BUCKET_BY_CATEGORY: Record<RecCategory, SavingsBucket> = {
   Consolidation: "Vendor switch",
   "Vendor switch": "Vendor switch",
   "Infrastructure reuse": "Infrastructure reuse",
+  Overbilling: "Billing errors",
+  "Duplicate invoice": "Billing errors",
+  "Duplicate subscription": "License reclaim",
+  "Spend anomaly": "Billing errors",
+  "Renewal notice": "Vendor switch",
 }
 
 export const PILLAR_COPY: Record<Pillar, string> = {

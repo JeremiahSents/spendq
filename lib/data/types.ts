@@ -21,6 +21,9 @@ export type VendorKey =
   | "Grafana"
   | "Confluence"
   | "Microsoft Teams"
+  | "Salesforce"
+  | "Jira"
+  | "Liquid"
 
 /** Every mark the logo component can draw. */
 export type BrandKey = CloudProvider | VendorKey
@@ -42,14 +45,20 @@ export type RecCategory =
   | "Consolidation"
   | "Vendor switch"
   | "Infrastructure reuse"
+  | "Overbilling"
+  | "Duplicate invoice"
+  | "Duplicate subscription"
+  | "Spend anomaly"
+  | "Renewal notice"
 
-/** The five buckets the Overview savings chart groups categories into. */
+/** The buckets the Overview savings chart groups categories into. */
 export type SavingsBucket =
   | "Idle infrastructure"
   | "Overprovisioned"
   | "License reclaim"
   | "Vendor switch"
   | "Infrastructure reuse"
+  | "Billing errors"
 
 export type RecStatus = "Pending" | "Approved" | "Dismissed"
 export type RecSource = "cloud" | "vendor" | "procurement"
@@ -92,7 +101,7 @@ export interface VendorAlternative {
 export interface Vendor {
   id: string
   name: string
-  brand: VendorKey
+  brand: BrandKey
   category: string
   plan: string
   department: Department
@@ -121,6 +130,8 @@ export interface Vendor {
 
 export interface Recommendation {
   id: string
+  /** Backend action id, when the recommendation comes from the SpendQ API. */
+  actionId?: string
   source: RecSource
   refId: string
   brand: BrandKey | "SpendIQ"

@@ -1,0 +1,2099 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "SpendQ API",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Health Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/summary": {
+      "get": {
+        "summary": "Summary",
+        "operationId": "summary_summary_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Summary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/departments": {
+      "get": {
+        "summary": "Departments",
+        "operationId": "departments_departments_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DepartmentOut"
+                  },
+                  "type": "array",
+                  "title": "Response Departments Departments Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vendors": {
+      "get": {
+        "summary": "Vendors List",
+        "operationId": "vendors_list_vendors_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/VendorOut"
+                  },
+                  "type": "array",
+                  "title": "Response Vendors List Vendors Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vendors/{vendor_id}": {
+      "get": {
+        "summary": "Vendor Detail",
+        "operationId": "vendor_detail_vendors__vendor_id__get",
+        "parameters": [
+          {
+            "name": "vendor_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Vendor Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VendorDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contracts": {
+      "get": {
+        "summary": "Contracts List",
+        "operationId": "contracts_list_contracts_get",
+        "parameters": [
+          {
+            "name": "department_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Department Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContractOut"
+                  },
+                  "title": "Response Contracts List Contracts Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/findings": {
+      "get": {
+        "summary": "Findings List",
+        "operationId": "findings_list_findings_get",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/FindingType"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Type"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/FindingStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "department_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Department Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FindingOut"
+                  },
+                  "title": "Response Findings List Findings Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/findings/{finding_id}": {
+      "get": {
+        "summary": "Finding Detail",
+        "operationId": "finding_detail_findings__finding_id__get",
+        "parameters": [
+          {
+            "name": "finding_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Finding Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FindingDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/findings/{finding_id}/graph": {
+      "get": {
+        "summary": "Finding Graph",
+        "description": "The money chain behind one finding: vendor -> contract -> licence -> usage, plus owner and invoices.",
+        "operationId": "finding_graph_findings__finding_id__graph_get",
+        "parameters": [
+          {
+            "name": "finding_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Finding Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Graph"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/actions": {
+      "get": {
+        "summary": "Actions List",
+        "operationId": "actions_list_actions_get",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/ActionStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ActionOut"
+                  },
+                  "title": "Response Actions List Actions Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/actions/{action_id}/approve": {
+      "post": {
+        "summary": "Approve",
+        "operationId": "approve_actions__action_id__approve_post",
+        "parameters": [
+          {
+            "name": "action_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Action Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecisionIn",
+                "default": {
+                  "approver": "Demo judge"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActionOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/actions/{action_id}/reject": {
+      "post": {
+        "summary": "Reject",
+        "operationId": "reject_actions__action_id__reject_post",
+        "parameters": [
+          {
+            "name": "action_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Action Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecisionIn",
+                "default": {
+                  "approver": "Demo judge"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActionOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/actions/{action_id}/complete": {
+      "post": {
+        "summary": "Complete",
+        "description": "Mark an approved action as carried out; its saving moves into the ledger as realised.",
+        "operationId": "complete_actions__action_id__complete_post",
+        "parameters": [
+          {
+            "name": "action_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Action Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecisionIn",
+                "default": {
+                  "approver": "Demo judge"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActionOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/renewals": {
+      "get": {
+        "summary": "Renewals",
+        "operationId": "renewals_renewals_get",
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 730,
+              "minimum": 1,
+              "default": 90,
+              "title": "Days"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RenewalOut"
+                  },
+                  "title": "Response Renewals Renewals Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ledger": {
+      "get": {
+        "summary": "Ledger",
+        "operationId": "ledger_ledger_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Ledger"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/reset": {
+      "post": {
+        "summary": "Reset",
+        "description": "Restore the demo to its starting state (run between judges).",
+        "operationId": "reset_admin_reset_post",
+        "parameters": [
+          {
+            "name": "x-admin-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Admin-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ActionKind": {
+        "type": "string",
+        "enum": [
+          "reclaim_seats",
+          "cancel_subscription",
+          "consolidate_vendor",
+          "dispute_invoice",
+          "block_duplicate_payment",
+          "investigate",
+          "renegotiate"
+        ],
+        "title": "ActionKind"
+      },
+      "ActionOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "finding_id": {
+            "type": "string",
+            "title": "Finding Id"
+          },
+          "finding_title": {
+            "type": "string",
+            "title": "Finding Title"
+          },
+          "finding_type": {
+            "$ref": "#/components/schemas/FindingType"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ActionKind"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "est_saving_kes": {
+            "type": "number",
+            "title": "Est Saving Kes"
+          },
+          "approval_tier": {
+            "$ref": "#/components/schemas/ApprovalTier"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ActionStatus"
+          },
+          "draft": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Draft"
+          },
+          "approver": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approver"
+          },
+          "decided_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided At"
+          },
+          "realised_saving_kes": {
+            "type": "number",
+            "title": "Realised Saving Kes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "finding_id",
+          "finding_title",
+          "finding_type",
+          "kind",
+          "description",
+          "est_saving_kes",
+          "approval_tier",
+          "status",
+          "draft",
+          "approver",
+          "decided_at",
+          "realised_saving_kes"
+        ],
+        "title": "ActionOut"
+      },
+      "ActionStatus": {
+        "type": "string",
+        "enum": [
+          "proposed",
+          "approved",
+          "rejected",
+          "done"
+        ],
+        "title": "ActionStatus"
+      },
+      "ApprovalTier": {
+        "type": "string",
+        "enum": [
+          "manager",
+          "cfo"
+        ],
+        "title": "ApprovalTier"
+      },
+      "BillingCycle": {
+        "type": "string",
+        "enum": [
+          "monthly",
+          "annual",
+          "one_off",
+          "usage"
+        ],
+        "title": "BillingCycle"
+      },
+      "CategoryTotal": {
+        "properties": {
+          "category": {
+            "type": "string",
+            "title": "Category"
+          },
+          "amount_kes": {
+            "type": "number",
+            "title": "Amount Kes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "category",
+          "amount_kes"
+        ],
+        "title": "CategoryTotal"
+      },
+      "ContractOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "vendor_id": {
+            "type": "string",
+            "title": "Vendor Id"
+          },
+          "vendor_name": {
+            "type": "string",
+            "title": "Vendor Name"
+          },
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "department_name": {
+            "type": "string",
+            "title": "Department Name"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "service_category": {
+            "type": "string",
+            "title": "Service Category"
+          },
+          "capabilities": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Capabilities"
+          },
+          "billing_cycle": {
+            "$ref": "#/components/schemas/BillingCycle"
+          },
+          "unit": {
+            "type": "string",
+            "title": "Unit"
+          },
+          "unit_price": {
+            "type": "number",
+            "title": "Unit Price"
+          },
+          "currency": {
+            "$ref": "#/components/schemas/Currency"
+          },
+          "quantity": {
+            "type": "integer",
+            "title": "Quantity"
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Start Date"
+          },
+          "end_date": {
+            "type": "string",
+            "format": "date",
+            "title": "End Date"
+          },
+          "auto_renew": {
+            "type": "boolean",
+            "title": "Auto Renew"
+          },
+          "notice_days": {
+            "type": "integer",
+            "title": "Notice Days"
+          },
+          "notice_deadline": {
+            "type": "string",
+            "format": "date",
+            "title": "Notice Deadline"
+          },
+          "days_to_end": {
+            "type": "integer",
+            "title": "Days To End"
+          },
+          "annual_value_kes": {
+            "type": "number",
+            "title": "Annual Value Kes"
+          },
+          "pdf_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pdf Path"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "vendor_id",
+          "vendor_name",
+          "department_id",
+          "department_name",
+          "title",
+          "service_category",
+          "capabilities",
+          "billing_cycle",
+          "unit",
+          "unit_price",
+          "currency",
+          "quantity",
+          "start_date",
+          "end_date",
+          "auto_renew",
+          "notice_days",
+          "notice_deadline",
+          "days_to_end",
+          "annual_value_kes",
+          "pdf_path"
+        ],
+        "title": "ContractOut"
+      },
+      "Country": {
+        "type": "string",
+        "enum": [
+          "KE",
+          "UG",
+          "TZ",
+          "RW"
+        ],
+        "title": "Country"
+      },
+      "Currency": {
+        "type": "string",
+        "enum": [
+          "KES",
+          "USD"
+        ],
+        "title": "Currency"
+      },
+      "DecisionIn": {
+        "properties": {
+          "approver": {
+            "type": "string",
+            "title": "Approver",
+            "default": "Demo judge"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "title": "DecisionIn"
+      },
+      "DepartmentOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "country": {
+            "$ref": "#/components/schemas/Country"
+          },
+          "cost_centre": {
+            "type": "string",
+            "title": "Cost Centre"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "country",
+          "cost_centre"
+        ],
+        "title": "DepartmentOut"
+      },
+      "FindingDetail": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "type": {
+            "$ref": "#/components/schemas/FindingType"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "explanation": {
+            "type": "string",
+            "title": "Explanation"
+          },
+          "amount_at_issue_kes": {
+            "type": "number",
+            "title": "Amount At Issue Kes"
+          },
+          "est_saving_kes": {
+            "type": "number",
+            "title": "Est Saving Kes"
+          },
+          "saving_basis": {
+            "type": "string",
+            "enum": [
+              "annual",
+              "one_time",
+              "none"
+            ],
+            "title": "Saving Basis"
+          },
+          "confidence": {
+            "type": "number",
+            "title": "Confidence"
+          },
+          "status": {
+            "$ref": "#/components/schemas/FindingStatus"
+          },
+          "department_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Department Id"
+          },
+          "department_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Department Name"
+          },
+          "vendor_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Vendor Ids"
+          },
+          "vendor_names": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Vendor Names"
+          },
+          "contract_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Contract Ids"
+          },
+          "invoice_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Invoice Ids"
+          },
+          "licence_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Licence Ids"
+          },
+          "related_finding_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Related Finding Ids"
+          },
+          "evidence": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Evidence"
+          },
+          "detected_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Detected At"
+          },
+          "contracts": {
+            "items": {
+              "$ref": "#/components/schemas/ContractOut"
+            },
+            "type": "array",
+            "title": "Contracts"
+          },
+          "invoices": {
+            "items": {
+              "$ref": "#/components/schemas/InvoiceOut"
+            },
+            "type": "array",
+            "title": "Invoices"
+          },
+          "licences": {
+            "items": {
+              "$ref": "#/components/schemas/LicenceOut"
+            },
+            "type": "array",
+            "title": "Licences"
+          },
+          "actions": {
+            "items": {
+              "$ref": "#/components/schemas/ActionOut"
+            },
+            "type": "array",
+            "title": "Actions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "title",
+          "explanation",
+          "amount_at_issue_kes",
+          "est_saving_kes",
+          "saving_basis",
+          "confidence",
+          "status",
+          "department_id",
+          "department_name",
+          "vendor_ids",
+          "vendor_names",
+          "contract_ids",
+          "invoice_ids",
+          "licence_ids",
+          "related_finding_ids",
+          "evidence",
+          "detected_at",
+          "contracts",
+          "invoices",
+          "licences",
+          "actions"
+        ],
+        "title": "FindingDetail"
+      },
+      "FindingOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "type": {
+            "$ref": "#/components/schemas/FindingType"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "explanation": {
+            "type": "string",
+            "title": "Explanation"
+          },
+          "amount_at_issue_kes": {
+            "type": "number",
+            "title": "Amount At Issue Kes"
+          },
+          "est_saving_kes": {
+            "type": "number",
+            "title": "Est Saving Kes"
+          },
+          "saving_basis": {
+            "type": "string",
+            "enum": [
+              "annual",
+              "one_time",
+              "none"
+            ],
+            "title": "Saving Basis"
+          },
+          "confidence": {
+            "type": "number",
+            "title": "Confidence"
+          },
+          "status": {
+            "$ref": "#/components/schemas/FindingStatus"
+          },
+          "department_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Department Id"
+          },
+          "department_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Department Name"
+          },
+          "vendor_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Vendor Ids"
+          },
+          "vendor_names": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Vendor Names"
+          },
+          "contract_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Contract Ids"
+          },
+          "invoice_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Invoice Ids"
+          },
+          "licence_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Licence Ids"
+          },
+          "related_finding_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Related Finding Ids"
+          },
+          "evidence": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Evidence"
+          },
+          "detected_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Detected At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "title",
+          "explanation",
+          "amount_at_issue_kes",
+          "est_saving_kes",
+          "saving_basis",
+          "confidence",
+          "status",
+          "department_id",
+          "department_name",
+          "vendor_ids",
+          "vendor_names",
+          "contract_ids",
+          "invoice_ids",
+          "licence_ids",
+          "related_finding_ids",
+          "evidence",
+          "detected_at"
+        ],
+        "title": "FindingOut"
+      },
+      "FindingStatus": {
+        "type": "string",
+        "enum": [
+          "open",
+          "actioned",
+          "dismissed"
+        ],
+        "title": "FindingStatus"
+      },
+      "FindingType": {
+        "type": "string",
+        "enum": [
+          "unused_licence",
+          "duplicate_subscription",
+          "vendor_overlap",
+          "overbilling",
+          "duplicate_invoice",
+          "anomaly",
+          "renewal_due"
+        ],
+        "title": "FindingType"
+      },
+      "Graph": {
+        "properties": {
+          "nodes": {
+            "items": {
+              "$ref": "#/components/schemas/GraphNode"
+            },
+            "type": "array",
+            "title": "Nodes"
+          },
+          "edges": {
+            "items": {
+              "$ref": "#/components/schemas/GraphEdge"
+            },
+            "type": "array",
+            "title": "Edges"
+          }
+        },
+        "type": "object",
+        "required": [
+          "nodes",
+          "edges"
+        ],
+        "title": "Graph"
+      },
+      "GraphEdge": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "target": {
+            "type": "string",
+            "title": "Target"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "source",
+          "target"
+        ],
+        "title": "GraphEdge"
+      },
+      "GraphNode": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "position": {
+            "$ref": "#/components/schemas/Position"
+          },
+          "data": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "position",
+          "data"
+        ],
+        "title": "GraphNode",
+        "description": "Shaped for React Flow: pass straight in as `nodes` (type is our own field in `data`)."
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "InvoiceOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "invoice_number": {
+            "type": "string",
+            "title": "Invoice Number"
+          },
+          "vendor_id": {
+            "type": "string",
+            "title": "Vendor Id"
+          },
+          "vendor_name": {
+            "type": "string",
+            "title": "Vendor Name"
+          },
+          "contract_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contract Id"
+          },
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "invoice_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Invoice Date"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "quantity": {
+            "type": "number",
+            "title": "Quantity"
+          },
+          "unit_price": {
+            "type": "number",
+            "title": "Unit Price"
+          },
+          "amount": {
+            "type": "number",
+            "title": "Amount"
+          },
+          "currency": {
+            "$ref": "#/components/schemas/Currency"
+          },
+          "amount_kes": {
+            "type": "number",
+            "title": "Amount Kes"
+          },
+          "etims_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Etims Number"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "invoice_number",
+          "vendor_id",
+          "vendor_name",
+          "contract_id",
+          "department_id",
+          "invoice_date",
+          "description",
+          "quantity",
+          "unit_price",
+          "amount",
+          "currency",
+          "amount_kes",
+          "etims_number"
+        ],
+        "title": "InvoiceOut"
+      },
+      "Ledger": {
+        "properties": {
+          "approved_kes": {
+            "type": "number",
+            "title": "Approved Kes"
+          },
+          "realised_kes": {
+            "type": "number",
+            "title": "Realised Kes"
+          },
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/LedgerEntry"
+            },
+            "type": "array",
+            "title": "Entries"
+          }
+        },
+        "type": "object",
+        "required": [
+          "approved_kes",
+          "realised_kes",
+          "entries"
+        ],
+        "title": "Ledger"
+      },
+      "LedgerEntry": {
+        "properties": {
+          "action_id": {
+            "type": "string",
+            "title": "Action Id"
+          },
+          "finding_id": {
+            "type": "string",
+            "title": "Finding Id"
+          },
+          "finding_title": {
+            "type": "string",
+            "title": "Finding Title"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ActionKind"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ActionStatus"
+          },
+          "approver": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approver"
+          },
+          "decided_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided At"
+          },
+          "est_saving_kes": {
+            "type": "number",
+            "title": "Est Saving Kes"
+          },
+          "realised_saving_kes": {
+            "type": "number",
+            "title": "Realised Saving Kes"
+          },
+          "saving_basis": {
+            "type": "string",
+            "enum": [
+              "annual",
+              "one_time",
+              "none"
+            ],
+            "title": "Saving Basis"
+          }
+        },
+        "type": "object",
+        "required": [
+          "action_id",
+          "finding_id",
+          "finding_title",
+          "kind",
+          "status",
+          "approver",
+          "decided_at",
+          "est_saving_kes",
+          "realised_saving_kes",
+          "saving_basis"
+        ],
+        "title": "LedgerEntry"
+      },
+      "LicenceOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "contract_id": {
+            "type": "string",
+            "title": "Contract Id"
+          },
+          "product_name": {
+            "type": "string",
+            "title": "Product Name"
+          },
+          "seats_paid": {
+            "type": "integer",
+            "title": "Seats Paid"
+          },
+          "seats_assigned": {
+            "type": "integer",
+            "title": "Seats Assigned"
+          },
+          "seats_active_90d": {
+            "type": "integer",
+            "title": "Seats Active 90D"
+          },
+          "never_signed_in": {
+            "type": "integer",
+            "title": "Never Signed In"
+          },
+          "utilisation": {
+            "type": "number",
+            "title": "Utilisation"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "contract_id",
+          "product_name",
+          "seats_paid",
+          "seats_assigned",
+          "seats_active_90d",
+          "never_signed_in",
+          "utilisation"
+        ],
+        "title": "LicenceOut"
+      },
+      "MonthTotal": {
+        "properties": {
+          "month": {
+            "type": "string",
+            "title": "Month"
+          },
+          "amount_kes": {
+            "type": "number",
+            "title": "Amount Kes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "month",
+          "amount_kes"
+        ],
+        "title": "MonthTotal"
+      },
+      "Position": {
+        "properties": {
+          "x": {
+            "type": "number",
+            "title": "X"
+          },
+          "y": {
+            "type": "number",
+            "title": "Y"
+          }
+        },
+        "type": "object",
+        "required": [
+          "x",
+          "y"
+        ],
+        "title": "Position"
+      },
+      "RenewalOut": {
+        "properties": {
+          "contract_id": {
+            "type": "string",
+            "title": "Contract Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "vendor_name": {
+            "type": "string",
+            "title": "Vendor Name"
+          },
+          "department_name": {
+            "type": "string",
+            "title": "Department Name"
+          },
+          "end_date": {
+            "type": "string",
+            "format": "date",
+            "title": "End Date"
+          },
+          "notice_deadline": {
+            "type": "string",
+            "format": "date",
+            "title": "Notice Deadline"
+          },
+          "days_to_notice_deadline": {
+            "type": "integer",
+            "title": "Days To Notice Deadline"
+          },
+          "days_to_end": {
+            "type": "integer",
+            "title": "Days To End"
+          },
+          "auto_renew": {
+            "type": "boolean",
+            "title": "Auto Renew"
+          },
+          "annual_value_kes": {
+            "type": "number",
+            "title": "Annual Value Kes"
+          },
+          "utilisation": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Utilisation"
+          },
+          "finding_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Finding Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "contract_id",
+          "title",
+          "vendor_name",
+          "department_name",
+          "end_date",
+          "notice_deadline",
+          "days_to_notice_deadline",
+          "days_to_end",
+          "auto_renew",
+          "annual_value_kes",
+          "utilisation",
+          "finding_ids"
+        ],
+        "title": "RenewalOut"
+      },
+      "Summary": {
+        "properties": {
+          "as_of": {
+            "type": "string",
+            "format": "date",
+            "title": "As Of"
+          },
+          "usd_to_kes": {
+            "type": "number",
+            "title": "Usd To Kes"
+          },
+          "total_spend_12m_kes": {
+            "type": "number",
+            "title": "Total Spend 12M Kes"
+          },
+          "vendor_count": {
+            "type": "integer",
+            "title": "Vendor Count"
+          },
+          "contract_count": {
+            "type": "integer",
+            "title": "Contract Count"
+          },
+          "found_kes": {
+            "type": "number",
+            "title": "Found Kes"
+          },
+          "approved_kes": {
+            "type": "number",
+            "title": "Approved Kes"
+          },
+          "realised_kes": {
+            "type": "number",
+            "title": "Realised Kes"
+          },
+          "open_finding_count": {
+            "type": "integer",
+            "title": "Open Finding Count"
+          },
+          "pending_approval_count": {
+            "type": "integer",
+            "title": "Pending Approval Count"
+          },
+          "renewals_next_90d": {
+            "type": "integer",
+            "title": "Renewals Next 90D"
+          },
+          "findings_by_type": {
+            "items": {
+              "$ref": "#/components/schemas/TypeTotal"
+            },
+            "type": "array",
+            "title": "Findings By Type"
+          },
+          "spend_by_month": {
+            "items": {
+              "$ref": "#/components/schemas/MonthTotal"
+            },
+            "type": "array",
+            "title": "Spend By Month"
+          },
+          "spend_by_category": {
+            "items": {
+              "$ref": "#/components/schemas/CategoryTotal"
+            },
+            "type": "array",
+            "title": "Spend By Category"
+          }
+        },
+        "type": "object",
+        "required": [
+          "as_of",
+          "usd_to_kes",
+          "total_spend_12m_kes",
+          "vendor_count",
+          "contract_count",
+          "found_kes",
+          "approved_kes",
+          "realised_kes",
+          "open_finding_count",
+          "pending_approval_count",
+          "renewals_next_90d",
+          "findings_by_type",
+          "spend_by_month",
+          "spend_by_category"
+        ],
+        "title": "Summary"
+      },
+      "TypeTotal": {
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/FindingType"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "est_saving_kes": {
+            "type": "number",
+            "title": "Est Saving Kes"
+          },
+          "amount_at_issue_kes": {
+            "type": "number",
+            "title": "Amount At Issue Kes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "count",
+          "est_saving_kes",
+          "amount_at_issue_kes"
+        ],
+        "title": "TypeTotal"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "VendorDetail": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "canonical_vendor_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Canonical Vendor Id"
+          },
+          "canonical_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Canonical Name"
+          },
+          "category": {
+            "type": "string",
+            "title": "Category"
+          },
+          "country": {
+            "type": "string",
+            "title": "Country"
+          },
+          "spend_12m_kes": {
+            "type": "number",
+            "title": "Spend 12M Kes"
+          },
+          "contract_count": {
+            "type": "integer",
+            "title": "Contract Count"
+          },
+          "open_finding_count": {
+            "type": "integer",
+            "title": "Open Finding Count"
+          },
+          "contracts": {
+            "items": {
+              "$ref": "#/components/schemas/ContractOut"
+            },
+            "type": "array",
+            "title": "Contracts"
+          },
+          "invoices": {
+            "items": {
+              "$ref": "#/components/schemas/InvoiceOut"
+            },
+            "type": "array",
+            "title": "Invoices"
+          },
+          "findings": {
+            "items": {
+              "$ref": "#/components/schemas/FindingOut"
+            },
+            "type": "array",
+            "title": "Findings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "canonical_vendor_id",
+          "canonical_name",
+          "category",
+          "country",
+          "spend_12m_kes",
+          "contract_count",
+          "open_finding_count",
+          "contracts",
+          "invoices",
+          "findings"
+        ],
+        "title": "VendorDetail"
+      },
+      "VendorOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "canonical_vendor_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Canonical Vendor Id"
+          },
+          "canonical_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Canonical Name"
+          },
+          "category": {
+            "type": "string",
+            "title": "Category"
+          },
+          "country": {
+            "type": "string",
+            "title": "Country"
+          },
+          "spend_12m_kes": {
+            "type": "number",
+            "title": "Spend 12M Kes"
+          },
+          "contract_count": {
+            "type": "integer",
+            "title": "Contract Count"
+          },
+          "open_finding_count": {
+            "type": "integer",
+            "title": "Open Finding Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "canonical_vendor_id",
+          "canonical_name",
+          "category",
+          "country",
+          "spend_12m_kes",
+          "contract_count",
+          "open_finding_count"
+        ],
+        "title": "VendorOut"
+      }
+    }
+  }
+}

@@ -1,0 +1,62 @@
+[
+  {
+    "id": "dep_it_ke",
+    "name": "IT",
+    "country": "KE",
+    "cost_centre": "CC-1100"
+  },
+  {
+    "id": "dep_digital_ke",
+    "name": "Digital Banking",
+    "country": "KE",
+    "cost_centre": "CC-1200"
+  },
+  {
+    "id": "dep_corporate_ke",
+    "name": "Corporate Banking",
+    "country": "KE",
+    "cost_centre": "CC-1300"
+  },
+  {
+    "id": "dep_retail_ke",
+    "name": "Retail Banking",
+    "country": "KE",
+    "cost_centre": "CC-1400"
+  },
+  {
+    "id": "dep_marketing_ke",
+    "name": "Marketing",
+    "country": "KE",
+    "cost_centre": "CC-1500"
+  },
+  {
+    "id": "dep_finance_ke",
+    "name": "Finance",
+    "country": "KE",
+    "cost_centre": "CC-1600"
+  },
+  {
+    "id": "dep_legal_ke",
+    "name": "Legal & Compliance",
+    "country": "KE",
+    "cost_centre": "CC-1700"
+  },
+  {
+    "id": "dep_admin_ke",
+    "name": "Admin & Facilities",
+    "country": "KE",
+    "cost_centre": "CC-1800"
+  },
+  {
+    "id": "dep_it_ug",
+    "name": "IT (Uganda)",
+    "country": "UG",
+    "cost_centre": "CC-2100"
+  },
+  {
+    "id": "dep_it_tz",
+    "name": "IT (Tanzania)",
+    "country": "TZ",
+    "cost_centre": "CC-3100"
+  }
+]

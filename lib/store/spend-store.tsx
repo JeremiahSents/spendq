@@ -10,6 +10,8 @@
 import * as React from "react"
 
 import { analyzeRequest, type RequestInput } from "@/lib/procurement/engine"
+import { backendRecommendations, backendVendors, type BackendSnapshot } from "@/lib/api/adapter"
+import { fixtureSnapshot, loadBackendSnapshot } from "@/lib/api/backend-data"
 import {
   seedAnomalies,
   seedBudgets,
@@ -83,13 +85,29 @@ type Action =
   | { type: "setCopilot"; open: boolean }
   | { type: "toggleIntegration"; id: string }
   | { type: "updateSettings"; patch: Partial<Settings> }
+  | { type: "hydrateBackend"; snapshot: BackendSnapshot }
+
+/** Seed vendors the backend owns the truth for; its contracts replace them. */
+const BACKEND_OWNED = new Set(["ven-zoom", "ven-m365"])
+const localVendors = seedVendors.filter((v) => !BACKEND_OWNED.has(v.id))
+
+/** Swap in a backend snapshot: its vendors and findings replace the previous ones. */
+function withBackend(state: Pick<SpendState, "vendors" | "recommendations">, snapshot: BackendSnapshot) {
+  return {
+    vendors: [...state.vendors.filter((v) => !v.id.startsWith("be-")), ...backendVendors(snapshot)],
+    recommendations: [...state.recommendations.filter((r) => !r.actionId), ...backendRecommendations(snapshot)],
+  }
+}
 
 function initialState(): SpendState {
+  const base = {
+    vendors: localVendors,
+    recommendations: buildRecommendations(seedResources, localVendors, seedRequests),
+  }
   return {
     resources: seedResources,
-    vendors: seedVendors,
     requests: seedRequests,
-    recommendations: buildRecommendations(seedResources, seedVendors, seedRequests),
+    ...withBackend(base, fixtureSnapshot),
     budgets: seedBudgets,
     anomalies: seedAnomalies,
     integrations: seedIntegrations,
@@ -183,6 +201,8 @@ function reducer(state: SpendState, action: Action): SpendState {
       }
     case "updateSettings":
       return { ...state, settings: { ...state.settings, ...action.patch } }
+    case "hydrateBackend":
+      return { ...state, ...withBackend(state, action.snapshot) }
   }
 }
 
@@ -208,6 +228,19 @@ const SpendContext = React.createContext<SpendContextValue | null>(null)
 
 export function SpendProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = React.useReducer(reducer, undefined, initialState)
+
+  // With NEXT_PUBLIC_API_URL set, replace the fixture snapshot with live backend data.
+  React.useEffect(() => {
+    let cancelled = false
+    loadBackendSnapshot()
+      .then((snapshot) => {
+        if (snapshot && !cancelled) dispatch({ type: "hydrateBackend", snapshot })
+      })
+      .catch((error) => console.warn("SpendQ API unavailable, using exported fixtures.", error))
+    return () => {
+      cancelled = true
+    }
+  }, [])
   const value = React.useMemo<SpendContextValue>(
     () => ({
       state,
