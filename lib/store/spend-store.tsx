@@ -34,7 +34,8 @@ import type {
   Vendor,
   Department,
 } from "@/lib/data/types"
-import { buildRecommendations, procurementRecommendation, seedRequests } from "./build"
+import { buildRecommendations, procurementRecommendation, resourceRecommendation, seedRequests, vendorRecommendation } from "./build"
+import { buildResource, buildVendor, type NewResourceInput, type NewVendorInput } from "./create"
 
 export const WORKSPACES = ["NCBA Tech & Cloud Ops", "Group Digital Banking", "All Subsidiaries"] as const
 export type Workspace = (typeof WORKSPACES)[number]
@@ -86,6 +87,10 @@ type Action =
   | { type: "toggleIntegration"; id: string }
   | { type: "updateSettings"; patch: Partial<Settings> }
   | { type: "hydrateBackend"; snapshot: BackendSnapshot }
+  | { type: "restoreSaved"; saved: SavedDemo }
+  | { type: "resetDemo" }
+  | { type: "addResource"; resource: CloudResource }
+  | { type: "addVendor"; vendor: Vendor }
 
 /** Seed vendors the backend owns the truth for; its contracts replace them. */
 const BACKEND_OWNED = new Set(["ven-zoom", "ven-m365"])
@@ -116,6 +121,61 @@ function initialState(): SpendState {
     range: "30d",
     drawer: null,
     copilotOpen: false,
+  }
+}
+
+/**
+ * What survives a refresh. The demo has no database: decisions, new purchase
+ * requests and settings are kept in localStorage, and everything else is
+ * rebuilt from the seed and backend fixtures. Bump the key when the shape changes.
+ */
+export const STORAGE_KEY = "spendiq-demo-v1"
+
+export interface SavedDemo {
+  recStatus: Record<string, RecStatus>
+  requests: ProcurementRequest[]
+  settings: Settings
+  integrations: Integration[]
+  workspace: Workspace
+  range: DateRange
+  createdResources?: CloudResource[]
+  createdVendors?: Vendor[]
+}
+
+function toSaved(state: SpendState): SavedDemo {
+  return {
+    recStatus: Object.fromEntries(state.recommendations.map((r) => [r.id, r.status])),
+    requests: state.requests,
+    settings: state.settings,
+    integrations: state.integrations,
+    workspace: state.workspace,
+    range: state.range,
+    createdResources: state.resources.filter((r) => r.createdInDemo),
+    createdVendors: state.vendors.filter((v) => v.createdInDemo),
+  }
+}
+
+function applySaved(input: SpendState, saved: SavedDemo): SpendState {
+  // Items created in an earlier session come back first, with their recommendations.
+  let state = input
+  for (const resource of saved.createdResources ?? []) state = reducer(state, { type: "addResource", resource })
+  for (const vendor of saved.createdVendors ?? []) state = reducer(state, { type: "addVendor", vendor })
+  const requests = saved.requests?.length ? saved.requests : state.requests
+  // Procurement recommendations follow their requests, including ones filed in the demo.
+  const procurementRecs = requests
+    .map((p) => procurementRecommendation(p))
+    .filter((r): r is Recommendation => r !== null)
+  const recommendations = [...procurementRecs, ...state.recommendations.filter((r) => r.source !== "procurement")].map(
+    (r) => (saved.recStatus?.[r.id] ? { ...r, status: saved.recStatus[r.id] } : r),
+  )
+  return {
+    ...state,
+    requests,
+    recommendations,
+    settings: { ...state.settings, ...saved.settings },
+    integrations: saved.integrations?.length ? saved.integrations : state.integrations,
+    workspace: saved.workspace ?? state.workspace,
+    range: saved.range ?? state.range,
   }
 }
 
@@ -203,6 +263,28 @@ function reducer(state: SpendState, action: Action): SpendState {
       return { ...state, settings: { ...state.settings, ...action.patch } }
     case "hydrateBackend":
       return { ...state, ...withBackend(state, action.snapshot) }
+    case "restoreSaved":
+      return applySaved(state, action.saved)
+    case "resetDemo":
+      return initialState()
+    case "addResource": {
+      if (state.resources.some((r) => r.id === action.resource.id)) return state
+      const rec = resourceRecommendation(action.resource)
+      return {
+        ...state,
+        resources: [action.resource, ...state.resources],
+        recommendations: rec ? [rec, ...state.recommendations] : state.recommendations,
+      }
+    }
+    case "addVendor": {
+      if (state.vendors.some((v) => v.id === action.vendor.id)) return state
+      const rec = vendorRecommendation(action.vendor)
+      return {
+        ...state,
+        vendors: [action.vendor, ...state.vendors],
+        recommendations: rec ? [rec, ...state.recommendations] : state.recommendations,
+      }
+    }
   }
 }
 
@@ -222,12 +304,39 @@ interface SpendContextValue {
   setCopilotOpen: (open: boolean) => void
   toggleIntegration: (id: string) => void
   updateSettings: (patch: Partial<Settings>) => void
+  /** Clears saved demo state and returns every screen to the starting data. */
+  resetDemo: () => void
+  /** Adds a cloud resource, runs the right-sizing rules on it, and returns its id. */
+  addResource: (input: NewResourceInput) => string
+  /** Adds a vendor contract, runs the license rule on it, and returns its id. */
+  addVendor: (input: NewVendorInput) => string
 }
 
 const SpendContext = React.createContext<SpendContextValue | null>(null)
 
 export function SpendProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = React.useReducer(reducer, undefined, initialState)
+
+  // Restore the saved demo after mount (reading storage during render would
+  // break hydration), then save on every change from then on.
+  const restored = React.useRef(false)
+  React.useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(STORAGE_KEY)
+      if (raw) dispatch({ type: "restoreSaved", saved: JSON.parse(raw) as SavedDemo })
+    } catch (error) {
+      console.warn("Ignoring unreadable saved demo state.", error)
+    }
+    restored.current = true
+  }, [])
+  React.useEffect(() => {
+    if (!restored.current) return
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(toSaved(state)))
+    } catch {
+      // Storage full or blocked: the demo still works, it just won't survive a refresh.
+    }
+  }, [state])
 
   // With NEXT_PUBLIC_API_URL set, replace the fixture snapshot with live backend data.
   React.useEffect(() => {
@@ -272,11 +381,29 @@ export function SpendProvider({ children }: { children: React.ReactNode }) {
       setCopilotOpen: (open) => dispatch({ type: "setCopilot", open }),
       toggleIntegration: (id) => dispatch({ type: "toggleIntegration", id }),
       updateSettings: (patch) => dispatch({ type: "updateSettings", patch }),
+      addResource: (input) => {
+        const resource = buildResource(input, nextSeq(state.resources.map((r) => r.id), "res-demo-"))
+        dispatch({ type: "addResource", resource })
+        return resource.id
+      },
+      addVendor: (input) => {
+        const vendor = buildVendor(input, nextSeq(state.vendors.map((v) => v.id), "ven-demo-"))
+        dispatch({ type: "addVendor", vendor })
+        return vendor.id
+      },
+      resetDemo: () => {
+        window.localStorage.removeItem(STORAGE_KEY)
+        dispatch({ type: "resetDemo" })
+      },
     }),
     [state],
   )
 
   return <SpendContext.Provider value={value}>{children}</SpendContext.Provider>
+}
+
+function nextSeq(ids: string[], prefix: string) {
+  return Math.max(0, ...ids.filter((id) => id.startsWith(prefix)).map((id) => Number(id.slice(prefix.length)) || 0)) + 1
 }
 
 export function useSpend() {

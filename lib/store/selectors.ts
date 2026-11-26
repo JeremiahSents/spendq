@@ -56,8 +56,20 @@ export function potentialBySource(s: SpendState, source: Recommendation["source"
   )
 }
 
+/** The record's headline recommendation: pending before decided, then the biggest saving. */
 export function recommendationFor(s: SpendState, refId: string) {
-  return s.recommendations.find((r) => r.refId === refId)
+  return s.recommendations
+    .filter((r) => r.refId === refId)
+    .sort((a, b) => Number(b.status === "Pending") - Number(a.status === "Pending") || recSavings(b) - recSavings(a))[0]
+}
+
+/** How a recommendation's saving should be worded in toasts. */
+export function savingWording(r: Recommendation) {
+  const saving = recSavings(r)
+  if (saving <= 0) return { kind: "none" as const, text: "no direct saving" }
+  const oneTime = r.evidence.some((e) => e.label === "Estimated saving" && e.value.includes("one-time"))
+  if (oneTime) return { kind: "one-time" as const, text: `$${Math.round(saving * 12).toLocaleString("en-US")} one-time recovery` }
+  return { kind: "monthly" as const, text: `$${Math.round(saving).toLocaleString("en-US")}/mo projected savings` }
 }
 
 /** Months shown for the selected date range. */

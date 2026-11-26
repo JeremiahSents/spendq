@@ -14,6 +14,7 @@ import { money } from "@/lib/format"
 import { budgetVsActual } from "@/lib/store/selectors"
 import { useSpend } from "@/lib/store/spend-store"
 import { cn } from "@/lib/utils"
+import { ResetDemoDialog } from "./reset-demo-dialog"
 
 type ToggleKey = "blockOverBudget" | "requireReuseCheck" | "notifyOnAnomaly" | "weeklyDigest"
 
@@ -115,6 +116,15 @@ export function SettingsView() {
   const { settings } = state
   const [auto, setAuto] = useState(String(settings.autoApproveBelow))
   const [cfo, setCfo] = useState(String(settings.requireCfoAbove))
+  const [resetOpen, setResetOpen] = useState(false)
+
+  // Settings can change underneath the form (restored from storage, or a demo reset): follow them.
+  const [synced, setSynced] = useState(settings)
+  if (synced.autoApproveBelow !== settings.autoApproveBelow || synced.requireCfoAbove !== settings.requireCfoAbove) {
+    setSynced(settings)
+    setAuto(String(settings.autoApproveBelow))
+    setCfo(String(settings.requireCfoAbove))
+  }
 
   const autoN = Number(auto)
   const cfoN = Number(cfo)
@@ -206,6 +216,24 @@ export function SettingsView() {
           Data is simulated for the NCBA hackathon demo. No live systems are read or changed.
         </p>
       </SectionCard>
+
+      <SectionCard title="Demo data" description="The demo has no database of its own.">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="max-w-prose text-xs text-muted-foreground">
+            Decisions, purchase requests and settings are saved in this browser (localStorage), so they survive a
+            refresh but stay on this device. Reset to start the walkthrough again from the original data.
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setResetOpen(true)}
+            className="border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
+          >
+            Reset demo
+          </Button>
+        </div>
+      </SectionCard>
+      <ResetDemoDialog open={resetOpen} onOpenChange={setResetOpen} />
     </div>
   )
 }

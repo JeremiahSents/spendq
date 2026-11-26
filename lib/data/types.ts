@@ -86,6 +86,8 @@ export interface CloudResource {
   analysis?: string
   /** Verified headroom that procurement can reallocate before buying new capacity. */
   spare?: { vcpu: number; memoryGb: number; note: string }
+  /** Added live during the demo (saved in localStorage, cleared by Reset). */
+  createdInDemo?: boolean
   history: { day: string; cpu: number; memory: number }[]
 }
 
@@ -118,6 +120,8 @@ export interface Vendor {
   description: string
   history: { month: string; spend: number }[]
   alternatives: VendorAlternative[]
+  /** Added live during the demo (saved in localStorage, cleared by Reset). */
+  createdInDemo?: boolean
   recommendation?: {
     category: RecCategory
     title: string

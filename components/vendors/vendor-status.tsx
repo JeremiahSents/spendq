@@ -1,5 +1,7 @@
 import { ToneBadge } from "@/components/shared/dashboard-ui"
-import type { RecCategory, Recommendation } from "@/lib/data/types"
+import type { RecCategory, RecStatus, Recommendation, Vendor } from "@/lib/data/types"
+import { recSavings } from "@/lib/store/selectors"
+import type { SpendState } from "@/lib/store/spend-store"
 import { cn } from "@/lib/utils"
 
 /** Short verb phrases for the directory's status column. */
@@ -10,7 +12,35 @@ export const ACTION_LABEL: Partial<Record<RecCategory, string>> = {
   Renegotiation: "Renegotiate",
   Consolidation: "Consolidate",
   "Vendor switch": "Switch vendor",
+  Overbilling: "Recover overcharge",
+  "Duplicate invoice": "Block duplicate",
+  "Duplicate subscription": "Merge contracts",
+  "Spend anomaly": "Investigate",
+  "Renewal notice": "Send notice",
 }
+
+const STATUS_RANK: Record<RecStatus, number> = { Pending: 0, Approved: 1, Dismissed: 2 }
+
+/**
+ * Every recommendation for a vendor, most relevant first: pending before
+ * approved before dismissed, then by saving. A backend contract can carry
+ * several (Zoom: unused seats, overlap, renewal notice).
+ */
+export function vendorRecs(state: Pick<SpendState, "recommendations">, vendorId: string) {
+  return state.recommendations
+    .filter((r) => r.refId === vendorId)
+    .sort((a, b) => STATUS_RANK[a.status] - STATUS_RANK[b.status] || recSavings(b) - recSavings(a))
+}
+
+/** The recommendation that speaks for the vendor: the most valuable pending one. */
+export const primaryVendorRec = (state: Pick<SpendState, "recommendations">, vendorId: string) =>
+  vendorRecs(state, vendorId)[0]
+
+/**
+ * Consumption contracts (AWS, connectivity) come from the backend as a single
+ * "unit" worth thousands a month. A 1/1 licence bar means nothing for them.
+ */
+export const isUsageBased = (v: Vendor) => v.purchased <= 1 && v.active <= 1
 
 export type VendorStatus = { label: string; tone: "positive" | "warning" | "neutral" }
 
@@ -21,9 +51,14 @@ export function vendorStatus(rec: Recommendation | undefined): VendorStatus {
   return { label: ACTION_LABEL[rec.category] ?? rec.category, tone: "warning" }
 }
 
-export function VendorStatusBadge({ rec }: { rec: Recommendation | undefined }) {
+export function VendorStatusBadge({ rec, more = 0 }: { rec: Recommendation | undefined; more?: number }) {
   const s = vendorStatus(rec)
-  return <ToneBadge tone={s.tone}>{s.label}</ToneBadge>
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <ToneBadge tone={s.tone}>{s.label}</ToneBadge>
+      {more > 0 ? <span className="font-mono text-[11px] whitespace-nowrap text-muted-foreground tabular-nums">+{more} more</span> : null}
+    </span>
+  )
 }
 
 /** License utilization tone: red under 60%, amber under 85%, green otherwise. */

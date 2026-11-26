@@ -5,8 +5,7 @@ import { toast } from "sonner"
 import { api } from "@/lib/api/client"
 import { API_URL } from "@/lib/api/backend-data"
 import type { Recommendation } from "@/lib/data/types"
-import { perMonth } from "@/lib/format"
-import { recSavings } from "./selectors"
+import { savingWording } from "./selectors"
 import { useSpend } from "./spend-store"
 
 /**
@@ -37,8 +36,9 @@ export function useRecActions() {
       if (!rec) return
       approveRecommendation(id)
       sync(rec, "approve")
-      toast.success("Recommendation approved", {
-        description: `${rec.title} · ${perMonth(recSavings(rec))} projected savings`,
+      const wording = savingWording(rec)
+      toast.success(wording.kind === "none" ? "Action assigned" : "Recommendation approved", {
+        description: wording.kind === "none" ? rec.title : `${rec.title} · ${wording.text}`,
         action: { label: "Undo", onClick: () => resetRecommendation(id) },
       })
     },

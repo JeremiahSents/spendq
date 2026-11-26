@@ -13,10 +13,14 @@ import { useSpend } from "@/lib/store/spend-store"
 import { useRecActions } from "@/lib/store/use-rec-actions"
 import { cn } from "@/lib/utils"
 
+import { EngineTag } from "./engine-tag"
+import { approveLabel, isEngineRec, oneTimeAmount, savingKind, zeroSavingLabel } from "./filters"
+
 export function RecommendationRow({ rec }: { rec: Recommendation }) {
   const { openDrawer, resetRecommendation } = useSpend()
   const { approve, dismiss } = useRecActions()
   const saving = recSavings(rec)
+  const kind = savingKind(rec)
   const open = () => openDrawer({ kind: "recommendation", id: rec.id })
   const stop = (e: React.SyntheticEvent) => e.stopPropagation()
 
@@ -46,23 +50,52 @@ export function RecommendationRow({ rec }: { rec: Recommendation }) {
             <span>{rec.category}</span>
             <span aria-hidden>·</span>
             <span>{rec.department}</span>
+            {isEngineRec(rec) ? <EngineTag /> : null}
           </div>
-          <p className="font-mono text-xs text-muted-foreground tabular-nums">
-            Current {money(rec.currentMonthly)} <span aria-hidden>→</span> Recommended {money(rec.recommendedMonthly)}
-          </p>
+          {kind === "none" ? (
+            <p className="font-mono text-xs text-muted-foreground tabular-nums">
+              Contract value {perMonth(rec.currentMonthly)} · no direct saving
+            </p>
+          ) : (
+            <p className="font-mono text-xs text-muted-foreground tabular-nums">
+              Current {money(rec.currentMonthly)} <span aria-hidden>→</span> Recommended {money(rec.recommendedMonthly)}
+            </p>
+          )}
         </div>
       </div>
 
       <div className="flex items-center gap-3 md:flex-col md:items-end md:gap-1">
-        <span
-          className={cn(
-            "font-heading text-lg font-semibold tracking-[-0.01em] tabular-nums",
-            rec.status === "Dismissed" ? "text-muted-foreground line-through" : "text-emerald-600 dark:text-emerald-400",
-          )}
-        >
-          {perMonth(saving)}
-        </span>
-        <span className="font-mono text-xs text-muted-foreground tabular-nums">{perYear(saving * 12)}</span>
+        {kind === "none" ? (
+          <>
+            <span
+              className={cn(
+                "text-sm font-semibold",
+                rec.status === "Dismissed"
+                  ? "text-muted-foreground line-through"
+                  : rec.category === "Renewal notice"
+                    ? "text-destructive"
+                    : "text-amber-700 dark:text-amber-400",
+              )}
+            >
+              {zeroSavingLabel(rec)}
+            </span>
+            <span className="text-xs text-muted-foreground">No direct saving</span>
+          </>
+        ) : (
+          <>
+            <span
+              className={cn(
+                "font-heading text-lg font-semibold tracking-[-0.01em] tabular-nums",
+                rec.status === "Dismissed" ? "text-muted-foreground line-through" : "text-emerald-600 dark:text-emerald-400",
+              )}
+            >
+              {perMonth(saving)}
+            </span>
+            <span className="font-mono text-xs text-muted-foreground tabular-nums">
+              {kind === "one-time" ? `${money(oneTimeAmount(rec))} one-time` : perYear(saving * 12)}
+            </span>
+          </>
+        )}
       </div>
 
       <div className="flex flex-wrap items-center gap-2 md:w-[300px] md:justify-end" onClick={stop} onKeyDown={stop}>
@@ -74,9 +107,9 @@ export function RecommendationRow({ rec }: { rec: Recommendation }) {
               <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} />
               Dismiss
             </Button>
-            <Button size="sm" onClick={() => approve(rec.id)} aria-label={`Approve ${rec.title}`}>
+            <Button size="sm" onClick={() => approve(rec.id)} aria-label={`${approveLabel(rec)} ${rec.title}`}>
               <HugeiconsIcon icon={Tick02Icon} strokeWidth={2} />
-              Approve
+              {approveLabel(rec)}
             </Button>
           </>
         ) : (

@@ -31,7 +31,7 @@ export const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "
 export const CLOUD_TREND = [0.81, 0.83, 0.85, 0.87, 0.88, 0.9, 0.92, 0.94, 0.96, 0.97, 1]
 export const VENDOR_TREND = [0.9, 0.9, 0.91, 0.92, 0.94, 0.94, 0.95, 0.96, 0.98, 0.99, 1]
 
-function utilisation(seed: number, cpu: number | null, memory: number | null) {
+export function utilisation(seed: number, cpu: number | null, memory: number | null) {
   return Array.from({ length: 30 }, (_, i) => {
     const date = new Date(TODAY)
     date.setUTCDate(date.getUTCDate() - (29 - i))
@@ -425,7 +425,7 @@ export const seedResources: CloudResource[] = resourceInputs.map((r, i) => ({
   history: utilisation(i + 1, r.cpu, r.memory),
 }))
 
-function vendorHistory(monthly: number, seed: number) {
+export function vendorHistory(monthly: number, seed: number) {
   return MONTHS.map((month, i) => ({
     month,
     spend: Math.round(monthly * (VENDOR_TREND[i] + Math.sin(i + seed) * 0.015)),
@@ -697,11 +697,13 @@ export const seedVendors: Vendor[] = vendorInputs.map((v, i) => ({
 }))
 
 export const seedBudgets: DepartmentBudget[] = [
-  { department: "Core Banking", monthlyBudget: 30000 },
-  { department: "Digital Channels", monthlyBudget: 31000 },
-  { department: "Cloud Platform", monthlyBudget: 23000 },
+  // Sized for local seed + backend contracts. Core Banking and Cloud Platform run
+  // slightly over; Digital Channels keeps headroom for the procurement demo.
+  { department: "Core Banking", monthlyBudget: 38000 },
+  { department: "Digital Channels", monthlyBudget: 66000 },
+  { department: "Cloud Platform", monthlyBudget: 95000 },
   { department: "Data & Risk", monthlyBudget: 12500 },
-  { department: "Security", monthlyBudget: 33500 },
+  { department: "Security", monthlyBudget: 4000 },
 ]
 
 export const seedAnomalies: Anomaly[] = [
