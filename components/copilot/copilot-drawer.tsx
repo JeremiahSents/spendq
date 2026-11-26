@@ -25,7 +25,9 @@ export function CopilotDrawer() {
   const [draft, setDraft] = React.useState("")
 
   const stateRef = React.useRef(state)
-  stateRef.current = state
+  React.useEffect(() => {
+    stateRef.current = state
+  }, [state])
   const nextId = React.useRef(1)
   const timer = React.useRef<ReturnType<typeof setTimeout> | null>(null)
   const scrollRef = React.useRef<HTMLDivElement>(null)

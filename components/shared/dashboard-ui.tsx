@@ -156,12 +156,15 @@ export function SectionCard({
   action,
   children,
   className,
+  bodyClassName,
 }: {
   title: string
   description?: string
   action?: ReactNode
   children: ReactNode
   className?: string
+  /** Classes for the body wrapper; it is a flex column that fills the card. */
+  bodyClassName?: string
 }) {
   return (
     <Card className={cn("min-w-0 gap-3 py-4", className)}>
@@ -172,7 +175,7 @@ export function SectionCard({
         </div>
         {action}
       </div>
-      <div className="min-w-0 px-4">{children}</div>
+      <div className={cn("flex min-w-0 flex-1 flex-col px-4", bodyClassName)}>{children}</div>
     </Card>
   )
 }

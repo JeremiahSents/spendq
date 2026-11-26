@@ -2,10 +2,10 @@
 
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
 
-import { DataLabel, SectionCard } from "@/components/shared/dashboard-ui"
+import { ChangePill, DataLabel, SectionCard } from "@/components/shared/dashboard-ui"
 import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
 import { money } from "@/lib/format"
-import { RANGE_LABEL, spendTrend } from "@/lib/store/selectors"
+import { RANGE_LABEL, monthOverMonth, spendTrend } from "@/lib/store/selectors"
 import { useSpend } from "@/lib/store/spend-store"
 import { CHART_CLASS, CLOUD_COLOR, VENDOR_COLOR, axisMoney, moneyRow } from "./chart-utils"
 
@@ -18,7 +18,16 @@ export function SpendTrendChart() {
   const { state } = useSpend()
   const data = spendTrend(state)
   const latest = data[data.length - 1]
+  const first = data[0]
   const total = data.reduce((s, d) => s + d.cloud + d.vendor, 0)
+  const mom = monthOverMonth(state)
+  const growth = ((latest.cloud + latest.vendor) / (first.cloud + first.vendor) - 1) * 100
+  const stats = [
+    { label: "Cloud · Nov", value: money(latest.cloud), change: mom.cloud },
+    { label: "Vendor · Nov", value: money(latest.vendor), change: mom.vendor },
+    { label: "Monthly average", value: money(total / data.length), change: null },
+    { label: `Growth since ${first.month}`, value: `${growth >= 0 ? "+" : ""}${growth.toFixed(1)}%`, change: null },
+  ]
 
   return (
     <SectionCard
@@ -26,7 +35,7 @@ export function SpendTrendChart() {
       description={`${data.length} months shown · ${money(total)} cumulative · Nov ${money(latest.cloud + latest.vendor)}`}
       action={<DataLabel kind="simulated" />}
     >
-      <ChartContainer config={config} className={CHART_CLASS}>
+      <ChartContainer config={config} className={`${CHART_CLASS} min-h-[230px] flex-1`}>
         <AreaChart data={data} margin={{ left: 0, right: 8, top: 8 }}>
           <CartesianGrid vertical={false} />
           <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} />
@@ -56,6 +65,17 @@ export function SpendTrendChart() {
           <ChartLegend content={<ChartLegendContent />} />
         </AreaChart>
       </ChartContainer>
+      <dl className="mt-3 grid grid-cols-2 gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-4">
+        {stats.map((s) => (
+          <div key={s.label} className="bg-card px-3 py-2">
+            <dt className="truncate text-[11px] text-muted-foreground">{s.label}</dt>
+            <dd className="mt-0.5 flex items-baseline gap-1.5">
+              <span className="font-mono text-sm font-medium tabular-nums">{s.value}</span>
+              {s.change !== null ? <ChangePill change={s.change} invert /> : null}
+            </dd>
+          </div>
+        ))}
+      </dl>
     </SectionCard>
   )
 }

@@ -208,9 +208,6 @@ const SpendContext = React.createContext<SpendContextValue | null>(null)
 
 export function SpendProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = React.useReducer(reducer, undefined, initialState)
-  const stateRef = React.useRef(state)
-  stateRef.current = state
-
   const value = React.useMemo<SpendContextValue>(
     () => ({
       state,
@@ -218,7 +215,7 @@ export function SpendProvider({ children }: { children: React.ReactNode }) {
       dismissRecommendation: (id) => dispatch({ type: "setRecStatus", id, status: "Dismissed" }),
       resetRecommendation: (id) => dispatch({ type: "setRecStatus", id, status: "Pending" }),
       submitRequest: (input: NewRequest) => {
-        const s = stateRef.current
+        const s = state
         const next = Math.max(1049, ...s.requests.map((p) => Number(p.id.replace("PR-", "")) || 0)) + 1
         const id = `PR-${next}`
         const engineInput: RequestInput = input

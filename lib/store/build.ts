@@ -144,7 +144,7 @@ export function procurementRecommendation(p: ProcurementRequest): Recommendation
   }
 }
 
-export interface SeedRequestInput extends Omit<ProcurementRequest, "analysis"> {}
+export type SeedRequestInput = Omit<ProcurementRequest, "analysis">
 
 const seedRequestInputs: SeedRequestInput[] = [
   {
