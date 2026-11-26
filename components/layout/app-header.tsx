@@ -1,0 +1,108 @@
+"use client"
+
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { HugeiconsIcon } from "@hugeicons/react"
+import { Briefcase01Icon, Calendar03Icon, LayoutAlignRightIcon, SparklesIcon } from "@hugeicons/core-free-icons"
+
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
+import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useSidebar } from "@/components/ui/sidebar"
+import type { DateRange } from "@/lib/data/types"
+import { RANGE_LABEL } from "@/lib/store/selectors"
+import { WORKSPACES, useSpend, type Workspace } from "@/lib/store/spend-store"
+import { pageTitle } from "./nav"
+import { NotificationsPopover } from "./notifications-popover"
+import { ThemeToggle } from "./theme-toggle"
+
+const RANGES = Object.keys(RANGE_LABEL) as DateRange[]
+const WORKSPACE_ITEMS = WORKSPACES.map((w) => ({ value: w, label: w }))
+const RANGE_ITEMS = RANGES.map((r) => ({ value: r, label: RANGE_LABEL[r] }))
+
+export function AppHeader() {
+  const pathname = usePathname()
+  const { isMobile, state: sidebarState, toggleSidebar } = useSidebar()
+  const { state, setWorkspace, setRange, setCopilotOpen } = useSpend()
+  const showTrigger = isMobile || sidebarState === "collapsed"
+
+  return (
+    <header className="sticky top-0 z-20 flex h-14 shrink-0 items-center gap-2 bg-background/95 px-4 backdrop-blur supports-backdrop-filter:bg-background/80 sm:px-6 md:rounded-t-xl lg:px-8">
+      {showTrigger ? (
+        <Button variant="ghost" size="icon-sm" className="-ml-2" aria-label="Open navigation" onClick={toggleSidebar}>
+          <HugeiconsIcon icon={LayoutAlignRightIcon} size={17} strokeWidth={1.8} />
+        </Button>
+      ) : null}
+
+      <Breadcrumb className="min-w-0">
+        <BreadcrumbList className="flex-nowrap">
+          <BreadcrumbItem className="hidden sm:inline-flex">
+            <BreadcrumbLink render={<Link href="/" />}>SpendIQ</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator className="hidden sm:inline-flex" />
+          <BreadcrumbItem className="min-w-0">
+            <BreadcrumbPage className="truncate font-medium">{pageTitle(pathname)}</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
+      <div className="ml-auto flex items-center gap-1.5">
+        <Select
+          items={WORKSPACE_ITEMS}
+          value={state.workspace}
+          onValueChange={(v) => {
+            if (v) setWorkspace(v as Workspace)
+          }}
+        >
+          <SelectTrigger size="sm" aria-label="Workspace" className="hidden max-w-56 md:flex">
+            <HugeiconsIcon icon={Briefcase01Icon} size={14} strokeWidth={1.8} className="text-muted-foreground" />
+            <SelectValue className="truncate" />
+          </SelectTrigger>
+          <SelectContent alignItemWithTrigger={false} align="end">
+            {WORKSPACES.map((w) => (
+              <SelectItem key={w} value={w}>
+                {w}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select
+          items={RANGE_ITEMS}
+          value={state.range}
+          onValueChange={(v) => {
+            if (v) setRange(v as DateRange)
+          }}
+        >
+          <SelectTrigger size="sm" aria-label="Date range" className="hidden sm:flex">
+            <HugeiconsIcon icon={Calendar03Icon} size={14} strokeWidth={1.8} className="text-muted-foreground" />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent alignItemWithTrigger={false} align="end">
+            {RANGES.map((r) => (
+              <SelectItem key={r} value={r}>
+                {RANGE_LABEL[r]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <NotificationsPopover />
+        <ThemeToggle />
+
+        <Button size="sm" className="ml-1" onClick={() => setCopilotOpen(true)}>
+          <HugeiconsIcon icon={SparklesIcon} size={14} strokeWidth={2} />
+          <span className="hidden sm:inline">Ask SpendIQ AI</span>
+          <span className="sm:hidden">AI</span>
+        </Button>
+      </div>
+    </header>
+  )
+}
