@@ -21,7 +21,8 @@ export function SpendTrendChart() {
   const first = data[0]
   const total = data.reduce((s, d) => s + d.cloud + d.vendor, 0)
   const mom = monthOverMonth(state)
-  const growth = ((latest.cloud + latest.vendor) / (first.cloud + first.vendor) - 1) * 100
+  const firstTotal = first.cloud + first.vendor
+  const growth = firstTotal > 0 ? ((latest.cloud + latest.vendor) / firstTotal - 1) * 100 : 0
   const stats = [
     { label: "Cloud · Nov", value: money(latest.cloud), change: mom.cloud },
     { label: "Vendor · Nov", value: money(latest.vendor), change: mom.vendor },
@@ -65,17 +66,19 @@ export function SpendTrendChart() {
           <ChartLegend content={<ChartLegendContent />} />
         </AreaChart>
       </ChartContainer>
-      <dl className="mt-3 grid grid-cols-2 gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-4">
-        {stats.map((s) => (
-          <div key={s.label} className="bg-card px-3 py-2">
-            <dt className="truncate text-[11px] text-muted-foreground">{s.label}</dt>
-            <dd className="mt-0.5 flex items-baseline gap-1.5">
-              <span className="font-mono text-sm font-medium tabular-nums">{s.value}</span>
-              {s.change !== null ? <ChangePill change={s.change} invert /> : null}
-            </dd>
-          </div>
-        ))}
-      </dl>
+      <div className="@container mt-3">
+        <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border bg-border @[42rem]:grid-cols-4">
+          {stats.map((s) => (
+            <div key={s.label} className="min-w-0 bg-card px-3 py-2.5">
+              <dt className="truncate text-[11px] text-muted-foreground">{s.label}</dt>
+              <dd className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1">
+                <span className="font-mono text-sm font-medium tabular-nums">{s.value}</span>
+                {s.change !== null ? <ChangePill change={s.change} invert /> : null}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </div>
     </SectionCard>
   )
 }

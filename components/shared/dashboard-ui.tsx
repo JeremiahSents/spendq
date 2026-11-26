@@ -274,7 +274,7 @@ export function EmptyState({ title, description, action }: { title: string; desc
 /** Marks figures as simulated baseline / projected, per the transparency rule. */
 export function DataLabel({ kind }: { kind: "simulated" | "projected" }) {
   return (
-    <span className="rounded border border-dashed px-1 py-px font-mono text-[10px] tracking-wide text-muted-foreground uppercase">
+    <span className="shrink-0 whitespace-nowrap rounded border border-dashed px-1.5 py-0.5 font-mono text-[10px] tracking-wide text-muted-foreground uppercase">
       {kind === "simulated" ? "Simulated baseline" : "Projected"}
     </span>
   )
