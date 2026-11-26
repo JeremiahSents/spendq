@@ -8,7 +8,6 @@ import { ResourceDrawer } from "@/components/drawers/resource-drawer"
 import { VendorDrawer } from "@/components/drawers/vendor-drawer"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
 import { useSpend, type DrawerTarget } from "@/lib/store/spend-store"
-import { cn } from "@/lib/utils"
 
 /**
  * The one global drawer. Any screen calls `openDrawer({ kind, id })`; this host
@@ -21,6 +20,7 @@ export function DrawerHost() {
   const [shown, setShown] = useState<NonNullable<DrawerTarget> | null>(drawer)
   if (drawer && drawer !== shown) setShown(drawer)
   const target = drawer ?? shown
+  const isRequest = target?.kind === "request"
 
   return (
     <Sheet
@@ -31,10 +31,11 @@ export function DrawerHost() {
     >
       <SheetContent
         side="right"
-        className={cn(
-          "w-full gap-0 overflow-hidden p-0",
-          target?.kind === "request" ? "sm:max-w-3xl" : "sm:max-w-xl",
-        )}
+        resizable
+        defaultWidth={isRequest ? 960 : 720}
+        minWidth={440}
+        storageKey={isRequest ? "spendiq-drawer-w-request" : "spendiq-drawer-w-detail"}
+        className="w-full gap-0 overflow-hidden p-0"
       >
         {target ? <DrawerBody key={`${target.kind}:${target.id}`} target={target} /> : null}
       </SheetContent>

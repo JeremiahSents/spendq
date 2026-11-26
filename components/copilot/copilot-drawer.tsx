@@ -109,7 +109,14 @@ export function CopilotDrawer() {
 
   return (
     <Sheet open={state.copilotOpen} onOpenChange={setCopilotOpen}>
-      <SheetContent side="right" className="w-full gap-0 sm:max-w-lg">
+      <SheetContent
+        side="right"
+        resizable
+        defaultWidth={600}
+        minWidth={400}
+        storageKey="spendiq-drawer-w-copilot"
+        className="w-full gap-0"
+      >
         <SheetHeader className="border-b pr-12">
           <div className="flex items-center gap-2">
             <span className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
