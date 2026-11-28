@@ -1,0 +1,17 @@
+# Render Blueprint: New > Blueprint in the Render dashboard, pick this repo and branch.
+services:
+  - type: web
+    name: spendq-api
+    runtime: python
+    rootDir: backend
+    plan: free  # sleeps after 15 min idle; switch to starter for judging day
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: CORS_ORIGINS
+        value: http://localhost:3000
+      - key: ADMIN_TOKEN
+        generateValue: true
+      - key: DATABASE_URL  # Neon pooled connection string; paste it in the Render dashboard
+        sync: false
